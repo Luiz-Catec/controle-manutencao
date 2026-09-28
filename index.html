@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Máquinas em Manutenção</title>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .auth-screen { max-width: 420px; margin: 8vh auto; background:#fff; padding:28px; border-radius:14px; box-shadow:0 8px 28px rgba(0,0,0,.12); }
+        .auth-screen h2 { margin-bottom:8px; }
+        .auth-screen p { color:#676879; margin-bottom:18px; }
+        .auth-screen label { display:block; font-weight:600; margin:12px 0 5px; }
+        .auth-screen input { width:100%; padding:12px; border:1px solid #cbd0dd; border-radius:8px; font:inherit; }
+        .auth-screen button { margin-top:16px; width:100%; padding:12px; border:0; border-radius:8px; background:#0073ea; color:#fff; font-weight:700; cursor:pointer; }
+        #auth-message { margin-top:12px; color:#b42318; white-space:pre-wrap; }
+        #session-bar { max-width:1400px; margin:0 auto 12px; display:flex; justify-content:space-between; align-items:center; gap:12px; color:#555; font-size:13px; }
+        #session-bar button { padding:7px 12px; border:1px solid #ccd; background:#fff; border-radius:7px; cursor:pointer; }
+        .container { display:none; }
+        body.viewer .header-actions button:first-child, body.viewer .actions, body.viewer .utility-actions { display:none !important; }
+        body.viewer #modal { display:none !important; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Figtree', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f6f7fb 0%, #e9ecf5 100%);
+            color: #323338;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0073ea 0%, #0060b9 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px;
+            box-shadow: 0px 4px 20px rgba(0, 115, 234, 0.3);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Figtree', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #00c875;
+            color: white;
+            box-shadow: 0px 4px 8px rgba(0, 200, 117, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #00a661;
+            transform: translateY(-2px);
+            box-shadow: 0px 6px 12px rgba(0, 200, 117, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #0073ea;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #d83a52;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c02a42;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Cards de Resumo */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-card.total {
+            border-color: #0073ea;
+        }
+
+        .stat-card.atrasadas {
+            border-color: #d83a52;
+            background: linear-gradient(135deg, #fff 0%, #ffe5e9 100%);
+        }
+
+        .stat-card.vence-breve {
+            border-color: #ffcb00;
+            background: linear-gradient(135deg, #fff 0%, #fff9e5 100%);
+        }
+
+        .stat-card.liberadas {
+            border-color: #00c875;
+            background: linear-gradient(135deg, #fff 0%, #e5f9f0 100%);
+        }
+
+        .stat-card.historico {
+            border-color: #9d50dd;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #676879;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            color: #323338;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: #676879;
+            font-family: 'Figtree', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            background: #f6f7fb;
+        }
+
+        .tab.active {
+            background: #0073ea;
+            color: white;
+            box-shadow: 0px 4px 8px rgba(0, 115, 234, 0.3);
+        }
+
+        /* Filtros e Busca */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 2px solid #d0d4e4;
+            border-radius: 8px;
+            font-family: 'Figtree', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0073ea;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 8px 16px;
+            border: 2px solid #d0d4e4;
+            background: white;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-chip:hover {
+            border-color: #0073ea;
+            background: #cce5ff;
+        }
+
+        .filter-chip.active {
+            background: #0073ea;
+            color: white;
+            border-color: #0073ea;
+        }
+
+        /* Tabela */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f6f7fb;
+            border-bottom: 2px solid #d0d4e4;
+        }
+
+        th {
+            padding: 16px 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #676879;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #f6f7fb;
+            font-size: 14px;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f6f7fb;
+        }
+
+        tbody tr.atrasado {
+            background: linear-gradient(90deg, #ffe5e9 0%, #fff 100%);
+            border-left: 4px solid #d83a52;
+        }
+
+        tbody tr.vence-breve {
+            background: linear-gradient(90deg, #fff9e5 0%, #fff 100%);
+            border-left: 4px solid #ffcb00;
+        }
+
+        tbody tr.liberado {
+            background: linear-gradient(90deg, #e5f9f0 0%, #fff 100%);
+            border-left: 4px solid #00c875;
+        }
+
+        tbody tr.liberado-aguardando {
+            background: linear-gradient(90deg, #e5f9ff 0%, #fff 100%);
+            border-left: 4px solid #4eccc6;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-atrasado {
+            background: #d83a52;
+            color: white;
+        }
+
+        .badge-vence-breve {
+            background: #ffcb00;
+            color: #323338;
+        }
+
+        .badge-no-prazo {
+            background: #00c875;
+            color: white;
+        }
+
+        .badge-liberado {
+            background: #00854d;
+            color: white;
+        }
+
+        .badge-aguardando {
+            background: #4eccc6;
+            color: white;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: #f6f7fb;
+        }
+
+        .icon-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #323338;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #676879;
+            line-height: 1;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #f6f7fb;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #323338;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d0d4e4;
+            border-radius: 8px;
+            font-family: 'Figtree', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0073ea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #676879;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #323338;
+        }
+
+        .utility-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            header {
+                padding: 16px 20px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        .obs-preview {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .np-cell {
+            font-weight: 600;
+            color: #0073ea;
+        }
+    </style>
+</head>
+<body>
+    <div id="auth-screen" class="auth-screen">
+      <h2>Sistema de Controle de Máquinas</h2>
+      <p>Entre com seu e-mail e senha para acessar o controle de manutenção.</p>
+      <form id="login-form">
+        <label for="login-email">E-mail</label>
+        <input id="login-email" type="email" required autocomplete="username" placeholder="seu@email.com">
+        <label for="login-password">Senha</label>
+        <input id="login-password" type="password" required autocomplete="current-password" placeholder="Sua senha">
+        <button type="submit">Entrar</button>
+      </form>
+      <div id="auth-message"></div>
+    </div>
+    <div id="session-bar" style="display:none"><span id="session-info"></span><button onclick="logout()">Sair</button></div>
+    <div class="container">
+        <header>
+            <h1>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Sistema de Controle de Máquinas
+            </h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Adicionar Máquina
+                </button>
+                <button class="btn btn-secondary" onclick="exportToCSV()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Exportar CSV
+                </button>
+            </div>
+        </header>
+
+        <!-- Cards de Resumo -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-label">Em Manutenção</div>
+                <div class="stat-value" id="stat-total">0</div>
+            </div>
+            <div class="stat-card atrasadas">
+                <div class="stat-label">Atrasadas</div>
+                <div class="stat-value" id="stat-atrasadas">0</div>
+            </div>
+            <div class="stat-card vence-breve">
+                <div class="stat-label">Vencem em Breve</div>
+                <div class="stat-value" id="stat-vence-breve">0</div>
+            </div>
+            <div class="stat-card liberadas">
+                <div class="stat-label">Liberadas</div>
+                <div class="stat-value" id="stat-liberadas">0</div>
+            </div>
+            <div class="stat-card historico">
+                <div class="stat-label">Histórico</div>
+                <div class="stat-value" id="stat-historico">0</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('ativas')">
+                <span>🔧 Manutenções Ativas</span>
+            </button>
+            <button class="tab" onclick="switchTab('historico')">
+                <span>📋 Histórico de Concluídas</span>
+            </button>
+        </div>
+
+        <!-- Controles -->
+        <div class="controls">
+            <div class="search-bar">
+                <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por N.P., técnico, setor ou situação..." oninput="applyFilters()">
+            </div>
+            <div class="filter-chips">
+                <button class="filter-chip active" data-filter="todos" onclick="setFilter('todos')">Todos</button>
+                <button class="filter-chip" data-filter="atrasados" onclick="setFilter('atrasados')">🔴 Atrasados</button>
+                <button class="filter-chip" data-filter="vence-breve" onclick="setFilter('vence-breve')">🟡 Vencem em Breve</button>
+                <button class="filter-chip" data-filter="no-prazo" onclick="setFilter('no-prazo')">🟢 No Prazo</button>
+                <button class="filter-chip" data-filter="liberados" onclick="setFilter('liberados')">✅ Liberados</button>
+            </div>
+        </div>
+
+        <!-- Tabela Ativas -->
+        <div id="tab-ativas" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>N.P.</th>
+                        <th>Data Entrada</th>
+                        <th>Dias em Manutenção</th>
+                        <th>Técnico</th>
+                        <th>Situação</th>
+                        <th>Data Prevista</th>
+                        <th>Dias p/ Prazo</th>
+                        <th>Setor</th>
+                        <th>Observações</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-ativas">
+                </tbody>
+            </table>
+            <div id="empty-ativas" class="empty-state" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3>Nenhuma máquina em manutenção</h3>
+                <p>Adicione uma nova máquina para começar</p>
+            </div>
+        </div>
+
+        <!-- Tabela Histórico -->
+        <div id="tab-historico" class="table-container" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>N.P.</th>
+                        <th>Data Entrada</th>
+                        <th>Data Saída</th>
+                        <th>Tempo Total (dias)</th>
+                        <th>Técnico</th>
+                        <th>Setor</th>
+                        <th>Observações</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-historico">
+                </tbody>
+            </table>
+            <div id="empty-historico" class="empty-state" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <h3>Nenhuma manutenção concluída</h3>
+                <p>O histórico aparecerá aqui quando você concluir manutenções</p>
+            </div>
+            <div class="utility-actions">
+                <button class="btn btn-secondary btn-small" onclick="backupData()">💾 Backup JSON</button>
+                <button class="btn btn-secondary btn-small" onclick="restoreData()">📥 Restaurar JSON</button>
+                <button class="btn btn-danger btn-small" onclick="clearAllData()">🗑️ Limpar Todos os Dados</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar/Editar -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Adicionar Máquina</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="machineForm" onsubmit="saveMachine(event)">
+                <input type="hidden" id="edit-id">
+                
+                <div class="form-group">
+                    <label for="np">N.P. (Número de Patrimônio) *</label>
+                    <input type="text" id="np" required placeholder="Ex: MAQ-001">
+                </div>
+
+                <div class="form-group">
+                    <label for="dataEntrada">Data de Entrada *</label>
+                    <input type="date" id="dataEntrada" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tecnico">Técnico Responsável *</label>
+                    <input type="text" id="tecnico" required placeholder="Nome do técnico">
+                </div>
+
+                <div class="form-group">
+                    <label for="situacao">Situação *</label>
+                    <select id="situacao" required>
+                        <option value="Em manutenção">Em manutenção</option>
+                        <option value="Aguardando peças">Aguardando peças</option>
+                        <option value="Aguardando orçamento">Aguardando orçamento</option>
+                        <option value="Liberado (aguardando custo)">Liberado (aguardando custo)</option>
+                        <option value="Liberado">Liberado</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dataPrevista">Data Prevista de Conclusão *</label>
+                    <input type="date" id="dataPrevista" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="setor">Setor *</label>
+                    <input type="text" id="setor" required placeholder="Ex: Pátio, Box (Pintura), Mecânica, Elétrica" list="setores">
+                    <datalist id="setores">
+                        <option value="Pátio">
+                        <option value="Box (Pintura)">
+                        <option value="Mecânica">
+                        <option value="Elétrica">
+                    </datalist>
+                </div>
+
+                <div class="form-group">
+                    <label for="observacoes">Observações</label>
+                    <textarea id="observacoes" placeholder="Detalhes adicionais sobre a manutenção..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://hhgrosuocgdmoxefddyl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_qFFZBeXxcGANo-UcPNUctQ_XU8MICim';
+        const ADMIN_UID = '561f8c7d-eeac-4812-b3ba-b164ac45fd20';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+        let isAdmin = false;
+        let knownIds = [];
+
+        // Estado da aplicação
+        let machines = [];
+        let currentTab = 'ativas';
+        let currentFilter = 'todos';
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async function() {
+            document.getElementById('login-form').addEventListener('submit', login);
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) await enterApp(session.user);
+            supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+                if (session && !currentUser) await enterApp(session.user);
+                if (!session) showLogin();
+            });
+        });
+
+        async function login(event) {
+            event.preventDefault();
+            const msg = document.getElementById('auth-message');
+            msg.textContent = 'Entrando...';
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) { msg.textContent = 'Não foi possível entrar: ' + error.message; return; }
+            await enterApp(data.user);
+        }
+
+        async function enterApp(user) {
+            currentUser = user;
+            isAdmin = user.id === ADMIN_UID;
+            document.body.classList.toggle('viewer', !isAdmin);
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('session-bar').style.display = 'flex';
+            document.getElementById('session-info').textContent = (isAdmin ? 'Administrador' : 'Somente visualização') + ' • ' + user.email;
+            document.querySelector('.container').style.display = 'block';
+            await loadData();
+            setTodayAsDefault();
+            render();
+            supabaseClient.channel('machines-live').on('postgres_changes', { event: '*', schema: 'public', table: 'machines' }, async () => {
+                await loadData(); render();
+            }).subscribe();
+        }
+
+        function showLogin() {
+            currentUser = null; isAdmin = false; machines = [];
+            document.body.classList.remove('viewer');
+            document.getElementById('auth-screen').style.display = 'block';
+            document.getElementById('session-bar').style.display = 'none';
+            document.querySelector('.container').style.display = 'none';
+        }
+
+        async function logout() { await supabaseClient.auth.signOut(); showLogin(); }
+
+        function setTodayAsDefault() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dataEntrada').value = today;
+            
+            // Data prevista: 7 dias a partir de hoje
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            document.getElementById('dataPrevista').value = nextWeek.toISOString().split('T')[0];
+        }
+
+        // Carregar dados compartilhados do Supabase
+        async function loadData() {
+            const { data, error } = await supabaseClient.from('machines').select('*').order('id');
+            if (error) { alert('Erro ao carregar dados do banco: ' + error.message); machines = []; return; }
+            machines = (data || []).map(row => ({
+                id: Number(row.id), np: row.np, dataEntrada: row.dataEntrada,
+                dataFim: row.dataFim, tecnico: row.tecnico || '', situacao: row.situacao || '',
+                dataPrevista: row.dataPrevista || '', setor: row.setor || '',
+                observacoes: row.observacoes || '', status: row.status || 'ativa'
+            }));
+            knownIds = machines.map(m => m.id);
+        }
+
+        // Salvar no Supabase (a política RLS limita escrita ao administrador)
+        async function saveData() {
+            if (!isAdmin) { alert('Acesso somente para visualização.'); return false; }
+            const currentIds = machines.map(m => m.id);
+            const removedIds = knownIds.filter(id => !currentIds.includes(id));
+            for (const id of removedIds) {
+                const { error } = await supabaseClient.from('machines').delete().eq('id', id);
+                if (error) { alert('Erro ao excluir registro: ' + error.message); return false; }
+            }
+            if (machines.length) {
+                const rows = machines.map(m => ({
+                    id: Number(m.id), np: m.np, dataEntrada: m.dataEntrada || null,
+                    dataFim: m.dataFim || null, tecnico: m.tecnico || null,
+                    situacao: m.situacao || null, dataPrevista: m.dataPrevista || null,
+                    setor: m.setor || null, observacoes: m.observacoes || null,
+                    status: m.status || 'ativa'
+                }));
+                const { error } = await supabaseClient.from('machines').upsert(rows, { onConflict: 'id' });
+                if (error) { alert('Erro ao salvar no banco: ' + error.message); return false; }
+            }
+            knownIds = currentIds;
+            return true;
+        }
+
+        // Calcular dias entre datas
+        function daysBetween(date1, date2) {
+            const oneDay = 24 * 60 * 60 * 1000;
+            const d1 = new Date(date1);
+            const d2 = new Date(date2);
+            return Math.round((d2 - d1) / oneDay);
+        }
+
+        // Calcular status da máquina
+        function getMachineStatus(machine) {
+            if (machine.status === 'historico') return 'historico';
+            
+            const today = new Date().toISOString().split('T')[0];
+            const diasPrazo = daysBetween(today, machine.dataPrevista);
+            
+            if (machine.situacao === 'Liberado') return 'liberado';
+            if (machine.situacao === 'Liberado (aguardando custo)') return 'liberado-aguardando';
+            if (diasPrazo < 0) return 'atrasado';
+            if (diasPrazo >= 0 && diasPrazo <= 3) return 'vence-breve';
+            return 'no-prazo';
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            const ativas = machines.filter(m => m.status === 'ativa');
+            const historico = machines.filter(m => m.status === 'historico');
+            
+            let atrasadas = 0;
+            let venceBreve = 0;
+            let liberadas = 0;
+            
+            ativas.forEach(machine => {
+                const status = getMachineStatus(machine);
+                if (status === 'atrasado') atrasadas++;
+                else if (status === 'vence-breve') venceBreve++;
+                else if (status === 'liberado' || status === 'liberado-aguardando') liberadas++;
+            });
+            
+            document.getElementById('stat-total').textContent = ativas.length;
+            document.getElementById('stat-atrasadas').textContent = atrasadas;
+            document.getElementById('stat-vence-breve').textContent = venceBreve;
+            document.getElementById('stat-liberadas').textContent = liberadas;
+            document.getElementById('stat-historico').textContent = historico.length;
+        }
+
+        // Renderizar tabelas
+        function render() {
+            updateStats();
+            renderAtivas();
+            renderHistorico();
+        }
+
+        function renderAtivas() {
+            const tbody = document.getElementById('tbody-ativas');
+            const empty = document.getElementById('empty-ativas');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let ativas = machines.filter(m => m.status === 'ativa');
+            
+            // Aplicar filtros
+            if (currentFilter !== 'todos') {
+                ativas = ativas.filter(m => {
+                    const status = getMachineStatus(m);
+                    if (currentFilter === 'atrasados') return status === 'atrasado';
+                    if (currentFilter === 'vence-breve') return status === 'vence-breve';
+                    if (currentFilter === 'no-prazo') return status === 'no-prazo';
+                    if (currentFilter === 'liberados') return status === 'liberado' || status === 'liberado-aguardando';
+                    return true;
+                });
+            }
+            
+            // Aplicar busca
+            if (searchTerm) {
+                ativas = ativas.filter(m => 
+                    m.np.toLowerCase().includes(searchTerm) ||
+                    m.tecnico.toLowerCase().includes(searchTerm) ||
+                    m.setor.toLowerCase().includes(searchTerm) ||
+                    m.situacao.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (ativas.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            tbody.innerHTML = ativas.map(machine => {
+                const diasManutencao = daysBetween(machine.dataEntrada, today);
+                const diasPrazo = daysBetween(today, machine.dataPrevista);
+                const status = getMachineStatus(machine);
+                
+                let badgeClass = 'badge-no-prazo';
+                let badgeText = 'No Prazo';
+                let rowClass = '';
+                
+                if (status === 'atrasado') {
+                    badgeClass = 'badge-atrasado';
+                    badgeText = 'Atrasado';
+                    rowClass = 'atrasado';
+                } else if (status === 'vence-breve') {
+                    badgeClass = 'badge-vence-breve';
+                    badgeText = 'Vence em Breve';
+                    rowClass = 'vence-breve';
+                } else if (status === 'liberado') {
+                    badgeClass = 'badge-liberado';
+                    badgeText = 'Liberado';
+                    rowClass = 'liberado';
+                } else if (status === 'liberado-aguardando') {
+                    badgeClass = 'badge-aguardando';
+                    badgeText = 'Aguardando Custo';
+                    rowClass = 'liberado-aguardando';
+                }
+                
+                const diasPrazoText = diasPrazo < 0 ? `${diasPrazo} dias` : `${diasPrazo} dias`;
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td class="np-cell">${machine.np}</td>
+                        <td>${formatDate(machine.dataEntrada)}</td>
+                        <td><strong>${diasManutencao}</strong> dias</td>
+                        <td>${machine.tecnico}</td>
+                        <td>${machine.situacao}</td>
+                        <td>${formatDate(machine.dataPrevista)}</td>
+                        <td>
+                            <span class="badge ${badgeClass}">${diasPrazoText}</span>
+                        </td>
+                        <td>${machine.setor}</td>
+                        <td><div class="obs-preview" title="${machine.observacoes || ''}">${machine.observacoes || '-'}</div></td>
+                        <td>
+                            <div class="actions">
+                                <button class="icon-btn" onclick="editMachine(${machine.id})" title="Editar">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#0073ea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#0073ea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button class="icon-btn" onclick="quickAction(${machine.id})" title="Ação Rápida">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="#ffcb00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button class="icon-btn" onclick="completeMaintenance(${machine.id})" title="Concluir">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7088 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="#00c875" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M22 4L12 14.01L9 11.01" stroke="#00c875" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button class="icon-btn" onclick="deleteMachine(${machine.id})" title="Excluir">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3 6H5H21" stroke="#d83a52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="#d83a52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderHistorico() {
+            const tbody = document.getElementById('tbody-historico');
+            const empty = document.getElementById('empty-historico');
+            
+            const historico = machines.filter(m => m.status === 'historico');
+            
+            if (historico.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            
+            tbody.innerHTML = historico.map(machine => {
+                const tempoTotal = daysBetween(machine.dataEntrada, machine.dataFim);
+                
+                return `
+                    <tr>
+                        <td class="np-cell">${machine.np}</td>
+                        <td>${formatDate(machine.dataEntrada)}</td>
+                        <td>${formatDate(machine.dataFim)}</td>
+                        <td><strong>${tempoTotal}</strong> dias</td>
+                        <td>${machine.tecnico}</td>
+                        <td>${machine.setor}</td>
+                        <td><div class="obs-preview" title="${machine.observacoes || ''}">${machine.observacoes || '-'}</div></td>
+                        <td>
+                            <div class="actions">
+                                <button class="icon-btn" onclick="deleteMachine(${machine.id})" title="Excluir do Histórico">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3 6H5H21" stroke="#d83a52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="#d83a52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const [year, month, day] = dateStr.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        // Modal
+        function openAddModal() {
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            document.getElementById('modal-title').textContent = 'Adicionar Máquina';
+            document.getElementById('machineForm').reset();
+            document.getElementById('edit-id').value = '';
+            setTodayAsDefault();
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function editMachine(id) {
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            const machine = machines.find(m => m.id === id);
+            if (!machine) return;
+            
+            document.getElementById('modal-title').textContent = 'Editar Máquina';
+            document.getElementById('edit-id').value = machine.id;
+            document.getElementById('np').value = machine.np;
+            document.getElementById('dataEntrada').value = machine.dataEntrada;
+            document.getElementById('tecnico').value = machine.tecnico;
+            document.getElementById('situacao').value = machine.situacao;
+            document.getElementById('dataPrevista').value = machine.dataPrevista;
+            document.getElementById('setor').value = machine.setor;
+            document.getElementById('observacoes').value = machine.observacoes || '';
+            
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function saveMachine(event) {
+            event.preventDefault();
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            
+            const id = document.getElementById('edit-id').value;
+            const machineData = {
+                np: document.getElementById('np').value,
+                dataEntrada: document.getElementById('dataEntrada').value,
+                tecnico: document.getElementById('tecnico').value,
+                situacao: document.getElementById('situacao').value,
+                dataPrevista: document.getElementById('dataPrevista').value,
+                setor: document.getElementById('setor').value,
+                observacoes: document.getElementById('observacoes').value,
+                status: 'ativa'
+            };
+            
+            if (id) {
+                // Editar
+                const index = machines.findIndex(m => m.id === parseInt(id));
+                machines[index] = { ...machines[index], ...machineData };
+            } else {
+                // Adicionar
+                machineData.id = Date.now();
+                machines.push(machineData);
+            }
+            
+            saveData();
+            render();
+            closeModal();
+        }
+
+        function quickAction(id) {
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            const machine = machines.find(m => m.id === id);
+            if (!machine) return;
+            
+            const options = [
+                'Liberado (aguardando custo)',
+                'Liberado',
+                'Em manutenção',
+                'Aguardando peças',
+                'Aguardando orçamento'
+            ];
+            
+            const currentIndex = options.indexOf(machine.situacao);
+            let nextStatus;
+            
+            if (machine.situacao === 'Liberado (aguardando custo)') {
+                nextStatus = 'Liberado';
+            } else if (machine.situacao === 'Liberado') {
+                nextStatus = 'Em manutenção';
+            } else {
+                nextStatus = 'Liberado (aguardando custo)';
+            }
+            
+            if (confirm(`Alterar situação de "${machine.situacao}" para "${nextStatus}"?`)) {
+                machine.situacao = nextStatus;
+                saveData();
+                render();
+            }
+        }
+
+        function completeMaintenance(id) {
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            const machine = machines.find(m => m.id === id);
+            if (!machine) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const dataSaida = prompt('Data de Saída (AAAA-MM-DD):', today);
+            
+            if (dataSaida) {
+                machine.status = 'historico';
+                machine.dataFim = dataSaida;
+                machine.situacao = 'Concluída';
+                saveData();
+                render();
+            }
+        }
+
+        function deleteMachine(id) {
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            if (confirm('Tem certeza que deseja excluir esta máquina?')) {
+                machines = machines.filter(m => m.id !== id);
+                saveData();
+                render();
+            }
+        }
+
+        // Tabs
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.tab').classList.add('active');
+            
+            if (tab === 'ativas') {
+                document.getElementById('tab-ativas').style.display = 'block';
+                document.getElementById('tab-historico').style.display = 'none';
+            } else {
+                document.getElementById('tab-ativas').style.display = 'none';
+                document.getElementById('tab-historico').style.display = 'block';
+            }
+        }
+
+        // Filtros
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            render();
+        }
+
+        function applyFilters() {
+            render();
+        }
+
+        // Exportar CSV
+        function exportToCSV() {
+            const ativas = machines.filter(m => m.status === 'ativa');
+            const historico = machines.filter(m => m.status === 'historico');
+            
+            let csv = '\uFEFF'; // UTF-8 BOM
+            
+            // Ativas
+            csv += 'MANUTENÇÕES ATIVAS\n';
+            csv += 'N.P.;Data Entrada;Dias em Manutenção;Técnico;Situação;Data Prevista;Dias p/ Prazo;Setor;Observações\n';
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            ativas.forEach(m => {
+                const diasManutencao = daysBetween(m.dataEntrada, today);
+                const diasPrazo = daysBetween(today, m.dataPrevista);
+                
+                csv += `${m.np};${formatDate(m.dataEntrada)};${diasManutencao};${m.tecnico};${m.situacao};${formatDate(m.dataPrevista)};${diasPrazo};${m.setor};"${m.observacoes || ''}"\n`;
+            });
+            
+            csv += '\n\nHISTÓRICO DE CONCLUÍDAS\n';
+            csv += 'N.P.;Data Entrada;Data Saída;Tempo Total (dias);Técnico;Setor;Observações\n';
+            
+            historico.forEach(m => {
+                const tempoTotal = daysBetween(m.dataEntrada, m.dataFim);
+                csv += `${m.np};${formatDate(m.dataEntrada)};${formatDate(m.dataFim)};${tempoTotal};${m.tecnico};${m.setor};"${m.observacoes || ''}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `manutencao_maquinas_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // Backup e Restauração
+        function backupData() {
+            const dataStr = JSON.stringify(machines, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `backup_manutencao_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        function restoreData() {
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (confirm('Isso substituirá todos os dados atuais. Continuar?')) {
+                            machines = data;
+                            saveData();
+                            render();
+                            alert('Dados restaurados com sucesso!');
+                        }
+                    } catch (error) {
+                        alert('Erro ao ler o arquivo JSON.');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function clearAllData() {
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            if (confirm('ATENÇÃO: Isso excluirá TODOS os dados permanentemente. Deseja continuar?')) {
+                if (confirm('Última confirmação: Tem certeza absoluta?')) {
+                    machines = [];
+                    saveData();
+                    render();
+                    alert('Todos os dados foram excluídos.');
+                }
+            }
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
