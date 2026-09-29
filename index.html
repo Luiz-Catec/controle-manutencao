@@ -594,71 +594,30 @@
             font-weight: 600;
             color: #0073ea;
         }
-    
-        .stock-dashboard{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:16px;margin:16px 0;align-items:start}
-        .stock-summary-panel,.stock-side-panel{background:#fff;border:1px solid #e1e5ee;border-radius:10px;padding:14px;min-width:0}
-        .stock-summary-panel h3,.stock-side-panel h3{font-size:16px;margin:0 0 12px;color:#202638}
-        .stock-summary-table{font-size:12px;min-width:760px}
-        .stock-summary-table th{background:#e8edf7;color:#202638;white-space:normal}
-        .stock-summary-table th:nth-child(2){background:#fff36a}
-        .stock-summary-table th:nth-child(4){background:#75c34b}
-        .stock-summary-table th:nth-child(5){background:#ef2929;color:#fff}
-        .stock-summary-table td{text-align:center;white-space:nowrap}
-        .stock-summary-table td:first-child{text-align:left;white-space:normal;min-width:190px}
-        .stock-summary-table tfoot td{font-weight:700;background:#e8edf7}
-        .stock-summary-table .status-maint{background:#ffe0e0}
-        .stock-summary-table .status-free{background:#e4f4d8}
-        .stock-summary-table .status-reserved{background:#fff5c7}
-        .stock-legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;margin-top:12px;color:#4a5263}
-        .stock-legend strong{width:100%;font-size:14px;color:#202638}
-        .legend-dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}.legend-dot.red{background:#ef2929}.legend-dot.green{background:#75c34b}.legend-dot.yellow{background:#fff36a}
-        @media(max-width:950px){.stock-dashboard{grid-template-columns:1fr}.stock-summary-panel .table-container{overflow-x:auto}}
-
-
-        /* Ajustes para uso em celulares */
-        @media (max-width: 600px) {
-            body { padding: 8px; }
-            .container { width: 100%; max-width: 100%; }
-            #session-bar { padding: 4px 2px; font-size: 12px; }
-            .auth-screen { width: 100%; max-width: 100%; margin: 4vh auto; padding: 20px 16px; }
-            header { padding: 14px; margin-bottom: 14px; border-radius: 10px; gap: 10px; }
-            h1 { font-size: 17px; line-height: 1.3; gap: 8px; }
-            h1 svg { width: 25px; height: 25px; flex: 0 0 auto; }
-            .header-actions { width: 100%; gap: 8px; }
-            .header-actions .btn { flex: 1 1 auto; justify-content: center; padding: 10px 9px; font-size: 13px; }
-            .tabs { display: flex; overflow-x: auto; gap: 6px; padding-bottom: 6px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
-            .tab { flex: 0 0 auto; white-space: nowrap; padding: 10px 12px; font-size: 13px; }
-            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
-            .stat-card { padding: 12px; }
-            .stat-label { font-size: 11px; }
-            .stat-value { font-size: 21px; }
-            .controls { padding: 10px; margin-bottom: 12px; }
-            .search-bar, .search-input { width: 100%; }
-            .search-input { font-size: 16px; min-height: 42px; }
-            .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-            .filter-chip { flex: 1 1 auto; padding: 8px 10px; font-size: 12px; }
-            .stock-dashboard { grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 10px 0; }
-            .stock-summary-panel, .stock-side-panel { padding: 10px; }
-            .stock-summary-panel h3, .stock-side-panel h3 { font-size: 14px; }
-            .table-container { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            table { min-width: 680px; font-size: 12px; }
-            th, td { padding: 8px 7px; }
-            .stock-summary-table { min-width: 760px; }
-            #tab-estoque > div:first-child { align-items: stretch !important; }
-            #tab-estoque > div:first-child .btn { width: 100%; justify-content: center; }
-            #tab-estoque h2 { font-size: 18px; }
-            #tab-estoque p { font-size: 12px; }
-            .form-actions { flex-direction: column; }
-            .form-actions .btn, .modal-content .btn { width: 100%; justify-content: center; }
-            .modal-content { width: calc(100vw - 16px); max-width: none; margin: 8px; padding: 14px; max-height: calc(100vh - 16px); overflow-y: auto; }
+        .daily-board { background:#fff; border:1px solid #d8dce5; border-radius:10px; padding:22px; color:#202124; }
+        .daily-board-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
+        .daily-board h2 { font-size:22px; text-align:center; }
+        .daily-board .daily-subtitle { text-align:center; color:#5f6368; margin-top:4px; }
+        .daily-table { width:100%; border-collapse:collapse; background:#fff; }
+        .daily-table th { background:#e9edf5; font-weight:700; text-align:left; }
+        .daily-table th,.daily-table td { border:1px solid #b9bec8; padding:10px; vertical-align:top; }
+        .daily-table .daily-status { font-weight:700; white-space:nowrap; }
+        .daily-table .daily-observation { white-space:pre-wrap; min-width:240px; }
+        .daily-empty { padding:28px; text-align:center; border:1px dashed #bbb; color:#666; }
+        @media print {
+          @page { size:landscape; margin:10mm; }
+          body.print-daily { background:#fff !important; padding:0 !important; color:#000 !important; }
+          body.print-daily #session-bar, body.print-daily .container > header, body.print-daily .stats-grid,
+          body.print-daily .tabs, body.print-daily .controls, body.print-daily #tab-ativas,
+          body.print-daily #tab-historico, body.print-daily #tab-estoque { display:none !important; }
+          body.print-daily .container { display:block !important; max-width:none !important; margin:0 !important; }
+          body.print-daily #tab-quadro { display:block !important; border:0 !important; box-shadow:none !important; }
+          body.print-daily .daily-board { border:0; padding:0; }
+          body.print-daily .no-print { display:none !important; }
+          body.print-daily .daily-table { font-size:10pt; }
+          body.print-daily .daily-table th,.daily-table td { padding:6px; }
         }
-        @media (min-width: 601px) and (max-width: 950px) {
-            body { padding: 12px; }
-            .stock-dashboard { grid-template-columns: minmax(0, 1fr); }
-            .table-container { max-width: 100%; overflow-x: auto; }
-        }
-
-</style>
+    </style>
 </head>
 <body>
     <div id="auth-screen" class="auth-screen">
@@ -735,28 +694,27 @@
                 <span>📋 Histórico de Concluídas</span>
             </button>
             <button class="tab" onclick="switchTab('estoque')"><span>📦 Estoque Total</span></button>
+            <button class="tab" onclick="switchTab('quadro')"><span>🧾 Quadro Diário</span></button>
         </div>
+
+        <section id="tab-quadro" class="table-container" style="display:none;">
+          <div class="daily-board">
+            <div class="daily-board-head">
+              <div><h2>EFETIVIDADE DE MÁQUINAS | UNIDADE SÃO PAULO</h2><p class="daily-subtitle" id="daily-date"></p></div>
+              <button class="btn btn-primary no-print" onclick="printDailyBoard()">🖨️ Imprimir / Salvar PDF</button>
+            </div>
+            <h3 style="background:#ffc400;color:#111;text-align:center;padding:7px;margin-bottom:0;border:1px solid #b9a000">EQUIPAMENTOS EM MANUTENÇÃO</h3>
+            <div id="daily-board-content"></div>
+            <p style="font-size:12px;color:#666;margin-top:12px" class="no-print">Este quadro usa os registros da aba Manutenções Ativas e as observações cadastradas em cada máquina.</p>
+          </div>
+        </section>
 
         <section id="tab-estoque" class="table-container" style="display:none;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
             <div><h2>📦 Estoque Total — Plataformas</h2><p style="color:#676879;margin-top:5px">Somente produtos da família PLATAFORMA, conforme relatório do Protheus.</p></div>
             <label class="btn btn-primary" style="cursor:pointer">📥 Importar Excel do Protheus<input id="stock-file" type="file" accept=".xlsx,.xls" style="display:none" onchange="importStock(event)"></label>
           </div>
-          <div class="stock-dashboard">
-            <div class="stock-summary-panel">
-              <h3>Resumo de efetividade por modelo</h3>
-              <div class="table-container"><table class="stock-summary-table">
-                <thead><tr><th>Descrição</th><th>Qtd. total</th><th>Qtd. locação</th><th>Disponível</th><th>Manutenção</th><th>Reservado</th><th>Em transferência</th><th>Efetividade (%)</th></tr></thead>
-                <tbody id="tbody-stock-summary"></tbody>
-              </table></div>
-            </div>
-            <div class="stock-side-panel">
-              <h3>Equipamentos em manutenção</h3>
-              <div class="table-container"><table><thead><tr><th>Modelo / Lote</th><th>Contrato / Cliente</th></tr></thead><tbody id="tbody-stock-maintenance"></tbody></table></div>
-              <div class="stock-legend"><strong>Legenda</strong><span><i class="legend-dot red"></i> Manutenção</span><span><i class="legend-dot green"></i> Disponível</span><span><i class="legend-dot yellow"></i> Reservado / locado</span></div>
-            </div>
-          </div>
-          <div class="stats-grid" style="margin:18px 0">
+          <div class="stats-grid" style="margin-bottom:18px">
             <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="stk-total">0</div></div>
             <div class="stat-card"><div class="stat-label">Disponíveis</div><div class="stat-value" id="stk-disp">0</div></div>
             <div class="stat-card"><div class="stat-label">Locadas</div><div class="stat-value" id="stk-loc">0</div></div>
@@ -1082,6 +1040,37 @@
             updateStats();
             renderAtivas();
             renderHistorico();
+            renderDailyBoard();
+        }
+
+        function escapeDaily(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+
+        function renderDailyBoard() {
+            const content = document.getElementById('daily-board-content');
+            const dateEl = document.getElementById('daily-date');
+            if (!content || !dateEl) return;
+            const now = new Date();
+            dateEl.textContent = 'Atualizado em ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+            const ativos = machines.filter(m => m.status === 'ativa');
+            if (!ativos.length) {
+                content.innerHTML = '<div class="daily-empty">Nenhuma máquina em manutenção no momento.</div>';
+                return;
+            }
+            const sorted = [...ativos].sort((a,b) => String(a.np).localeCompare(String(b.np), 'pt-BR', {numeric:true}));
+            content.innerHTML = `<table class="daily-table"><thead><tr><th>N.P.</th><th>Setor</th><th>Situação</th><th>Técnico</th><th>Entrada</th><th>Previsão</th><th>Status</th><th>Observações</th></tr></thead><tbody>${sorted.map(m => {
+                const st = getMachineStatus(m);
+                const stLabel = st === 'atrasado' ? 'ATRASADO' : st === 'vence-breve' ? 'VENCE EM BREVE' : st === 'liberado' ? 'LIBERADO' : st === 'liberado-aguardando' ? 'AGUARDANDO CUSTO' : 'NO PRAZO';
+                return `<tr><td><strong>${escapeDaily(m.np || '-')}</strong></td><td>${escapeDaily(m.setor || '-')}</td><td>${escapeDaily(m.situacao || '-')}</td><td>${escapeDaily(m.tecnico || '-')}</td><td>${escapeDaily(formatDate(m.dataEntrada))}</td><td>${escapeDaily(formatDate(m.dataPrevista))}</td><td class="daily-status">${stLabel}</td><td class="daily-observation">${escapeDaily(m.observacoes || 'Sem observações cadastradas')}</td></tr>`;
+            }).join('')}</tbody></table>`;
+        }
+
+        function printDailyBoard() {
+            renderDailyBoard();
+            document.body.classList.add('print-daily');
+            window.print();
+            setTimeout(() => document.body.classList.remove('print-daily'), 500);
         }
 
         function renderAtivas() {
@@ -1429,13 +1418,14 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.tab').classList.add('active');
             
-            ['ativas','historico','estoque'].forEach(id => {
+            ['ativas','historico','estoque','quadro'].forEach(id => {
                 const el=document.getElementById('tab-'+id); if(el) el.style.display=(tab===id?'block':'none');
             });
             // Os filtros de manutenção ficam ocultos na aba de estoque.
             const maintenanceControls=document.querySelector('.controls');
-            if(maintenanceControls) maintenanceControls.style.display=(tab==='estoque'?'none':'block');
+            if(maintenanceControls) maintenanceControls.style.display=(tab==='ativas' || tab==='historico'?'block':'none');
             if(tab==='estoque') renderStock();
+            if(tab==='quadro') renderDailyBoard();
         }
 
 
@@ -1472,19 +1462,11 @@
           const q=(document.getElementById('stock-search')?.value||'').toLowerCase();
           const rows=stockRows.filter(r=>[r.contrato,r.cliente,r.produto,r.descricao,r.lote,r.status].join(' ').toLowerCase().includes(q));
           const sum=f=>stockRows.reduce((a,r)=>a+f(r),0);
-          const statusType=s=>{s=String(s||'').toUpperCase();if(s.includes('MANUTEN'))return'man';if(s.includes('DISPON'))return'disp';if(s.includes('CONTRATO GERADO'))return'res';if(s.includes('TRANSFER'))return'trans';if(s.includes('NOTA FISCAL DE REMESSA GERADA'))return'loc';return'other';};
           document.getElementById('stk-total').textContent=sum(r=>r.total);
-          document.getElementById('stk-disp').textContent=sum(r=>statusType(r.status)==='disp'?r.total:0);
+          document.getElementById('stk-disp').textContent=sum(r=>/DISPONIVEL/i.test(r.status)?r.total:0);
           document.getElementById('stk-loc').textContent=sum(r=>r.locado);
-          document.getElementById('stk-man').textContent=sum(r=>statusType(r.status)==='man'?r.total:0);
+          document.getElementById('stk-man').textContent=sum(r=>/MANUTEN/i.test(r.status)?r.total:0);
           const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-          const groups=new Map();
-          stockRows.forEach(r=>{const name=String(r.descricao||r.produto||'Sem descrição').trim();if(!groups.has(name))groups.set(name,{name,total:0,loc:0,disp:0,man:0,res:0,trans:0});const g=groups.get(name),k=statusType(r.status);g.total+=r.total;g.loc+=r.locado;if(k==='disp')g.disp+=r.total;if(k==='man')g.man+=r.total;if(k==='res')g.res+=r.total;if(k==='trans')g.trans+=r.total;});
-          const grouped=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
-          const totals=grouped.reduce((a,g)=>{['total','loc','disp','man','res','trans'].forEach(k=>a[k]+=g[k]);return a;},{total:0,loc:0,disp:0,man:0,res:0,trans:0});
-          document.getElementById('tbody-stock-summary').innerHTML=grouped.map(g=>`<tr><td>${esc(g.name)}</td><td>${g.total}</td><td>${g.loc}</td><td class="status-free">${g.disp}</td><td class="status-maint">${g.man}</td><td class="status-reserved">${g.res}</td><td>${g.trans}</td><td>${g.total?(g.loc/g.total*100).toFixed(2).replace('.',',')+'%':'0,00%'}</td></tr>`).join('')+`<tr><td><strong>Total geral</strong></td><td><strong>${totals.total}</strong></td><td><strong>${totals.loc}</strong></td><td><strong>${totals.disp}</strong></td><td><strong>${totals.man}</strong></td><td><strong>${totals.res}</strong></td><td><strong>${totals.trans}</strong></td><td><strong>${totals.total?(totals.loc/totals.total*100).toFixed(2).replace('.',','):'0,00'}%</strong></td></tr>`;
-          const maint=rows.filter(r=>statusType(r.status)==='man');
-          document.getElementById('tbody-stock-maintenance').innerHTML=maint.map(r=>`<tr><td>${esc(r.descricao||r.produto)}<br><small>Lote: ${esc(r.lote)}</small></td><td>${esc(r.contrato)}<br><small>${esc(r.cliente)}</small></td></tr>`).join('')||'<tr><td colspan="2" style="text-align:center;padding:14px">Nenhum equipamento em manutenção.</td></tr>';
           document.getElementById('tbody-estoque').innerHTML=rows.map(r=>`<tr><td>${esc(r.contrato)}</td><td>${esc(r.cliente)}</td><td>${esc(r.produto)}</td><td>${esc(r.descricao)}</td><td>${esc(r.lote)}</td><td>${esc(r.status)}</td><td>${r.locado}</td><td>${r.total}</td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:22px">Nenhum registro para mostrar.</td></tr>';
         }
 
