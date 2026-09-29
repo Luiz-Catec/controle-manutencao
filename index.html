@@ -591,6 +591,13 @@
             cursor: help;
         }
 
+        .np-desc {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #676879;
+            margin-top: 2px;
+        }
         .np-cell {
             font-weight: 600;
             color: #0073ea;
@@ -1198,6 +1205,7 @@
             if (searchTerm) {
                 ativas = ativas.filter(m => 
                     m.np.toLowerCase().includes(searchTerm) ||
+                    descreverNP(m.np).toLowerCase().includes(searchTerm) ||
                     m.tecnico.toLowerCase().includes(searchTerm) ||
                     m.setor.toLowerCase().includes(searchTerm) ||
                     m.situacao.toLowerCase().includes(searchTerm)
@@ -1253,7 +1261,7 @@
                 
                 return `
                     <tr class="${rowClass}">
-                        <td class="np-cell">${machine.np}</td>
+                        <td class="np-cell">${machine.np}${descreverNP(machine.np) ? `<span class="np-desc">${descreverNP(machine.np)}</span>` : ''}</td>
                         <td>${formatDate(machine.dataEntrada)}</td>
                         <td><strong>${diasManutencao}</strong> dias</td>
                         <td>${machine.tecnico}</td>
@@ -1316,7 +1324,7 @@
                 
                 return `
                     <tr>
-                        <td class="np-cell">${machine.np}</td>
+                        <td class="np-cell">${machine.np}${descreverNP(machine.np) ? `<span class="np-desc">${descreverNP(machine.np)}</span>` : ''}</td>
                         <td>${formatDate(machine.dataEntrada)}</td>
                         <td>${formatDate(machine.dataFim)}</td>
                         <td><strong>${tempoTotal}</strong> dias</td>
@@ -1337,6 +1345,27 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        // ===== Descrição do N.P. (tipo de plataforma + metros) =====
+        const TIPOS_NP = {
+            '024': 'Tesoura Elétrica',
+            '025': 'Tesoura Diesel',
+            '026': 'Plataforma Telescópica Diesel',
+            '027': 'Plataforma Articulada Elétrica',
+            '028': 'Plataforma Articulada Diesel'
+        };
+        function descreverNP(np) {
+            const digitos = String(np || '').replace(/\D/g, '');
+            const tipo = TIPOS_NP[digitos.slice(0, 3)];
+            if (!tipo) return '';
+            const meio = digitos.slice(3, 7); // os 4 números do meio
+            if (meio.length < 4) return tipo;
+            const n = parseInt(meio, 10);
+            // 1200 -> 12 m | 1050 -> 10,5 m | 0012 -> 12 m  (ajuste aqui se a regra dos metros for outra)
+            const metros = n >= 100 ? n / 100 : n;
+            if (!metros) return tipo;
+            return `${tipo} ${String(metros).replace('.', ',')}m`;
         }
 
         function formatDate(dateStr) {
