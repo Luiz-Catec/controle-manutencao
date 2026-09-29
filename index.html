@@ -595,21 +595,28 @@
             font-weight: 600;
             color: #0073ea;
         }
-        .daily-board { background:#fff; border:1px solid #d8dce5; border-radius:10px; padding:22px; color:#202124; }
-        .daily-board-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
-        .daily-board h2 { font-size:22px; text-align:center; }
-        .daily-board .daily-subtitle { text-align:center; color:#5f6368; margin-top:4px; }
+        .daily-board { background:#fff; border:1px solid #d8dce5; border-radius:12px; padding:26px; color:#1f2937; box-shadow:0 2px 10px rgba(16,24,40,.06); }
+        .daily-board-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:22px; padding-bottom:16px; border-bottom:3px solid #ffc400; }
+        .daily-board h2 { font-size:22px; text-align:left; color:#1b2a4a; letter-spacing:.04em; font-weight:800; }
+        .daily-board .daily-subtitle { color:#6b7280; margin-top:4px; font-size:13px; }
         .daily-columns { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(300px, 1fr); gap:12px; align-items:start; }
         .daily-panel { min-width:0; }
-        .daily-panel-title { background:#ffc400; color:#111; text-align:center; padding:7px; margin:0; border:1px solid #b9a000; font-size:14px; }
-        .daily-table { width:100%; border-collapse:collapse; background:#fff; }
-        .daily-table th { background:#e9edf5; font-weight:700; text-align:left; }
-        .daily-table th,.daily-table td { border:1px solid #b9bec8; padding:7px; vertical-align:top; }
+        .daily-columns { gap:18px; }
+        .daily-panel-title { background:#1b2a4a; color:#fff; text-align:center; padding:10px; margin:0; border:0; border-radius:8px 8px 0 0; font-size:13px; letter-spacing:.08em; font-weight:700; }
+        .daily-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #d5dbe5; }
+        .daily-table th { background:#eef1f7; color:#374151; font-weight:700; text-align:left; font-size:.92em; letter-spacing:.02em; }
+        .daily-table th,.daily-table td { border:1px solid #dfe3ea; padding:9px 10px; vertical-align:middle; }
+        .daily-table tbody tr:nth-child(even) td { background-color:#f8fafc; }
+        .daily-table tfoot th { background:#dfe6f1 !important; color:#1b2a4a; text-align:center; }
+        .daily-table tfoot th:first-child { text-align:left; }
         .daily-table .daily-status { font-weight:700; white-space:nowrap; }
         .daily-table .daily-observation { white-space:pre-wrap; min-width:0; }
         .daily-maintenance-table { font-size:11px; }
-        .daily-maintenance-table td:first-child { width:38%; font-weight:600; }
-        .daily-empty { padding:28px; text-align:center; border:1px dashed #bbb; color:#666; }
+        .daily-maintenance-table td:first-child { width:32%; font-weight:600; }
+        .daily-maintenance-table td.daily-date { white-space:nowrap; text-align:center; font-weight:700; color:#1b2a4a; }
+        .daily-maintenance-table td { vertical-align:top; }
+        .daily-maintenance-table thead th { background:#eef1f7; border-bottom:2px solid #1b2a4a; }
+        .daily-empty { padding:28px; text-align:center; border:1px dashed #c3c9d4; border-radius:8px; color:#6b7280; background:#f8fafc; }
         @media (max-width: 900px) { .daily-columns { grid-template-columns:1fr; } }
         @media print {
           @page { size:landscape; margin:10mm; }
@@ -619,7 +626,8 @@
           body.print-daily #tab-historico, body.print-daily #tab-estoque { display:none !important; }
           body.print-daily .container { display:block !important; max-width:none !important; margin:0 !important; }
           body.print-daily #tab-quadro { display:block !important; border:0 !important; box-shadow:none !important; }
-          body.print-daily .daily-board { border:0; padding:0; }
+          body.print-daily, body.print-daily * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+          body.print-daily .daily-board { border:0; padding:0; box-shadow:none; }
           body.print-daily .daily-columns { display:grid !important; grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr) !important; gap:8px; }
           body.print-daily .daily-panel-title { font-size:9pt; padding:5px; }
           body.print-daily .no-print { display:none !important; }
@@ -1112,9 +1120,9 @@
                 return;
             }
             const sorted = [...ativos].sort((a,b) => String(a.np).localeCompare(String(b.np), 'pt-BR', {numeric:true}));
-            content.innerHTML = `<table class="daily-table daily-maintenance-table"><thead><tr><th>EQUIPAMENTO / N.P.</th><th>OBSERVAÇÕES / SERVIÇO NECESSÁRIO</th></tr></thead><tbody>${sorted.map(m => {
+            content.innerHTML = `<table class="daily-table daily-maintenance-table"><thead><tr><th>EQUIPAMENTO / N.P.</th><th>DATA PREVISTA</th><th>OBSERVAÇÕES / SERVIÇO NECESSÁRIO</th></tr></thead><tbody>${sorted.map(m => {
                 const equipamento = [m.situacao, m.np ? 'N.P. ' + m.np : ''].filter(Boolean).join(' — ') || '-';
-                return `<tr><td><strong>${escapeDaily(equipamento)}</strong></td><td class="daily-observation">${escapeDaily(m.observacoes || 'Sem observações cadastradas')}</td></tr>`;
+                return `<tr><td><strong>${escapeDaily(equipamento)}</strong></td><td class="daily-date">${m.dataPrevista ? escapeDaily(formatDate(m.dataPrevista)) : '-'}</td><td class="daily-observation">${escapeDaily(m.observacoes || 'Sem observações cadastradas')}</td></tr>`;
             }).join('')}</tbody></table>`;
         }
 
@@ -1132,7 +1140,7 @@
                         let p = tab.parentElement;
                         while (p && p !== doc.body) { p.style.maxWidth = 'none'; p.style.overflow = 'visible'; p = p.parentElement; }
                         const b = doc.querySelector('#tab-quadro .daily-board');
-                        b.style.cssText += ';width:' + W + 'px;max-width:none;border:0;border-radius:0;padding:28px;';
+                        b.style.cssText += ';width:' + W + 'px;max-width:none;border:0;border-radius:0;box-shadow:none;padding:28px;';
                         b.querySelectorAll('.no-print').forEach(e => e.style.display = 'none');
                         b.querySelectorAll('#daily-effectiveness > div').forEach(e => e.style.overflow = 'visible');
                         b.querySelector('.daily-columns').style.gridTemplateColumns = 'minmax(0,1.35fr) minmax(0,1fr)';
