@@ -1361,7 +1361,7 @@
         async function loadStock(){
           const {data,error}=await supabaseClient.from('estoque_protheus').select('*').order('cliente').order('contrato');
           if(error){console.warn('Estoque ainda não configurado:',error.message); document.getElementById('stock-info').textContent='Configure a tabela de estoque no Supabase para carregar os dados.'; stockRows=[]; renderStock(); return;}
-          stockRows=(data||[]).map(r=>({produto:r.produto,descricao:r.descricao,lote:r.lote,status:r.status,locado:Number(r.locado)||0,total:Number(r.total)||0,contrato:r.contrato,cliente:r.cliente}));
+          stockRows=(data||[]).filter(r=>String(r.lote??'').trim()!=='').map(r=>({produto:r.produto,descricao:r.descricao,lote:r.lote,status:r.status,locado:Number(r.locado)||0,total:Number(r.total)||0,contrato:r.contrato,cliente:r.cliente}));
           document.getElementById('stock-info').textContent=stockRows.length?`Estoque salvo no Supabase: ${stockRows.length} registros da família PLATAFORMA.`:'Nenhum estoque importado ainda.';
           renderStock();
         }
@@ -1379,7 +1379,7 @@
             const rows=raw.slice(hi+1).filter(r=>norm(r[family])==='PLATAFORMA').map(r=>{
               const c=String(r[contrato]??'').trim(), cl=String(r[cliente]??'').trim(), pr=String(r[prod]??'').trim(), lo=String(r[lote]??'').trim(), fi=String(r[filial]??'').trim();
               return {row_key:[fi,c,pr,lo].join('|'),contrato:c,cliente:cl,produto:pr,descricao:String(r[desc]??''),lote:lo,status:String(r[status]??''),locado:Number(r[loc])||0,total:Number(r[total])||0,familia:'PLATAFORMA'};
-            }).filter(r=>r.produto||r.lote);
+            }).filter(r=>r.lote.trim()!=='');
             if(!rows.length) throw new Error('Nenhuma linha da família PLATAFORMA encontrada.');
             document.getElementById('stock-info').textContent='Salvando '+rows.length+' registros no Supabase...';
             for(let i=0;i<rows.length;i+=300){const {error}=await supabaseClient.from('estoque_protheus').upsert(rows.slice(i,i+300),{onConflict:'row_key'});if(error)throw error;}
