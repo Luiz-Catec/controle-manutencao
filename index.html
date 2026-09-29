@@ -700,6 +700,7 @@
                         <th>Dias p/ Prazo</th>
                         <th>Setor</th>
                         <th>Observações</th>
+                        <th>Laudos/PDF</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -728,6 +729,7 @@
                         <th>Técnico</th>
                         <th>Setor</th>
                         <th>Observações</th>
+                        <th>Laudos/PDF</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -805,6 +807,13 @@
                 <div class="form-group">
                     <label for="observacoes">Observações</label>
                     <textarea id="observacoes" placeholder="Detalhes adicionais sobre a manutenção..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="pdf-files">Laudos e documentos (PDF)</label>
+                    <input type="file" id="pdf-files" accept="application/pdf,.pdf" multiple>
+                    <small>Somente PDF, até 10 MB por arquivo. Selecione um ou mais arquivos para anexar ao cadastro.</small>
+                    <div id="document-list"></div>
                 </div>
 
                 <div class="form-actions">
@@ -896,7 +905,7 @@
                 id: Number(row.id), np: row.np, dataEntrada: row.dataEntrada,
                 dataFim: row.dataFim, tecnico: row.tecnico || '', situacao: row.situacao || '',
                 dataPrevista: row.dataPrevista || '', setor: row.setor || '',
-                observacoes: row.observacoes || '', status: row.status || 'ativa'
+                observacoes: row.observacoes || '', documentos: Array.isArray(row.documentos) ? row.documentos : [], status: row.status || 'ativa'
             }));
             knownIds = machines.map(m => m.id);
         }
@@ -916,7 +925,7 @@
                     dataFim: m.dataFim || null, tecnico: m.tecnico || null,
                     situacao: m.situacao || null, dataPrevista: m.dataPrevista || null,
                     setor: m.setor || null, observacoes: m.observacoes || null,
-                    status: m.status || 'ativa'
+                    documentos: Array.isArray(m.documentos) ? m.documentos : [], status: m.status || 'ativa'
                 }));
                 const { error } = await supabaseClient.from('machines').upsert(rows, { onConflict: 'id' });
                 if (error) { alert('Erro ao salvar no banco: ' + error.message); return false; }
@@ -1058,6 +1067,7 @@
                         </td>
                         <td>${machine.setor}</td>
                         <td><div class="obs-preview" title="${machine.observacoes || ''}">${machine.observacoes || '-'}</div></td>
+                        <td>${renderDocuments(machine)}</td>
                         <td>
                             <div class="actions">
                                 <button class="icon-btn" onclick="editMachine(${machine.id})" title="Editar">
@@ -1116,6 +1126,7 @@
                         <td>${machine.tecnico}</td>
                         <td>${machine.setor}</td>
                         <td><div class="obs-preview" title="${machine.observacoes || ''}">${machine.observacoes || '-'}</div></td>
+                        <td>${renderDocuments(machine)}</td>
                         <td>
                             <div class="actions">
                                 <button class="icon-btn" onclick="deleteMachine(${machine.id})" title="Excluir do Histórico">
@@ -1142,6 +1153,7 @@
             if (!isAdmin) return alert('Acesso somente para visualização.');
             document.getElementById('modal-title').textContent = 'Adicionar Máquina';
             document.getElementById('machineForm').reset();
+            document.getElementById('document-list').innerHTML = '';
             document.getElementById('edit-id').value = '';
             setTodayAsDefault();
             document.getElementById('modal').classList.add('active');
@@ -1165,15 +1177,27 @@
             document.getElementById('dataPrevista').value = machine.dataPrevista;
             document.getElementById('setor').value = machine.setor;
             document.getElementById('observacoes').value = machine.observacoes || '';
+            document.getElementById('pdf-files').value = '';
+            document.getElementById('document-list').innerHTML = renderDocuments(machine);
             
             document.getElementById('modal').classList.add('active');
         }
 
-        function saveMachine(event) {
+        async function saveMachine(event) {
             event.preventDefault();
             if (!isAdmin) return alert('Acesso somente para visualização.');
-            
+
             const id = document.getElementById('edit-id').value;
+            const files = Array.from(document.getElementById('pdf-files').files || []);
+            for (const file of files) {
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                    alert('Selecione somente arquivos PDF.'); return;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('O arquivo "' + file.name + '" ultrapassa o limite de 10 MB.'); return;
+                }
+            }
+
             const machineData = {
                 np: document.getElementById('np').value,
                 dataEntrada: document.getElementById('dataEntrada').value,
@@ -1184,20 +1208,63 @@
                 observacoes: document.getElementById('observacoes').value,
                 status: 'ativa'
             };
-            
+
+            let machine;
             if (id) {
-                // Editar
                 const index = machines.findIndex(m => m.id === parseInt(id));
+                if (index < 0) return alert('Máquina não encontrada.');
                 machines[index] = { ...machines[index], ...machineData };
+                machine = machines[index];
             } else {
-                // Adicionar
                 machineData.id = Date.now();
+                machineData.documentos = [];
                 machines.push(machineData);
+                machine = machineData;
             }
-            
-            saveData();
+
+            const saved = await saveData();
+            if (!saved) return;
+
+            if (files.length) {
+                machine.documentos = Array.isArray(machine.documentos) ? machine.documentos : [];
+                for (const file of files) {
+                    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const path = `${machine.id}/${Date.now()}_${cleanName}`;
+                    const { error } = await supabaseClient.storage.from('laudos-manutencao').upload(path, file, { contentType: 'application/pdf', upsert: false });
+                    if (error) {
+                        alert('Erro ao enviar "' + file.name + '": ' + error.message + '\nOs demais dados foram salvos.');
+                        continue;
+                    }
+                    machine.documentos.push({ name: file.name, path });
+                }
+                const savedDocs = await saveData();
+                if (!savedDocs) return;
+            }
+
             render();
             closeModal();
+            document.getElementById('pdf-files').value = '';
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+
+        function renderDocuments(machine) {
+            const docs = Array.isArray(machine.documentos) ? machine.documentos : [];
+            if (!docs.length) return '<span style="color:#888">—</span>';
+            return '<div style="display:flex;flex-direction:column;gap:4px">' + docs.map((doc, index) =>
+                `<button type="button" class="btn btn-secondary btn-small" onclick="openDocument(${machine.id},${index})" title="Abrir PDF">📄 ${escapeHtml(doc.name || 'Laudo PDF')}</button>`
+            ).join('') + '</div>';
+        }
+
+        async function openDocument(machineId, docIndex) {
+            const machine = machines.find(m => m.id === Number(machineId));
+            const doc = machine && Array.isArray(machine.documentos) ? machine.documentos[docIndex] : null;
+            if (!doc || !doc.path) return alert('Documento não encontrado.');
+            const { data, error } = await supabaseClient.storage.from('laudos-manutencao').createSignedUrl(doc.path, 300);
+            if (error) return alert('Não foi possível abrir o PDF: ' + error.message);
+            window.open(data.signedUrl, '_blank', 'noopener');
         }
 
         function quickAction(id) {
