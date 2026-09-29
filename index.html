@@ -598,12 +598,18 @@
         .daily-board-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
         .daily-board h2 { font-size:22px; text-align:center; }
         .daily-board .daily-subtitle { text-align:center; color:#5f6368; margin-top:4px; }
+        .daily-columns { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(300px, 1fr); gap:12px; align-items:start; }
+        .daily-panel { min-width:0; }
+        .daily-panel-title { background:#ffc400; color:#111; text-align:center; padding:7px; margin:0; border:1px solid #b9a000; font-size:14px; }
         .daily-table { width:100%; border-collapse:collapse; background:#fff; }
         .daily-table th { background:#e9edf5; font-weight:700; text-align:left; }
-        .daily-table th,.daily-table td { border:1px solid #b9bec8; padding:10px; vertical-align:top; }
+        .daily-table th,.daily-table td { border:1px solid #b9bec8; padding:7px; vertical-align:top; }
         .daily-table .daily-status { font-weight:700; white-space:nowrap; }
-        .daily-table .daily-observation { white-space:pre-wrap; min-width:240px; }
+        .daily-table .daily-observation { white-space:pre-wrap; min-width:0; }
+        .daily-maintenance-table { font-size:11px; }
+        .daily-maintenance-table td:first-child { width:38%; font-weight:600; }
         .daily-empty { padding:28px; text-align:center; border:1px dashed #bbb; color:#666; }
+        @media (max-width: 900px) { .daily-columns { grid-template-columns:1fr; } }
         @media print {
           @page { size:landscape; margin:10mm; }
           body.print-daily { background:#fff !important; padding:0 !important; color:#000 !important; }
@@ -613,9 +619,13 @@
           body.print-daily .container { display:block !important; max-width:none !important; margin:0 !important; }
           body.print-daily #tab-quadro { display:block !important; border:0 !important; box-shadow:none !important; }
           body.print-daily .daily-board { border:0; padding:0; }
+          body.print-daily .daily-columns { display:grid !important; grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr) !important; gap:8px; }
+          body.print-daily .daily-panel-title { font-size:9pt; padding:5px; }
           body.print-daily .no-print { display:none !important; }
-          body.print-daily .daily-table { font-size:10pt; }
-          body.print-daily .daily-table th,.daily-table td { padding:6px; }
+          body.print-daily .daily-table { font-size:7pt !important; }
+          body.print-daily .daily-table th, body.print-daily .daily-table td { padding:3px 4px !important; }
+          body.print-daily .daily-maintenance-table { font-size:7.5pt !important; }
+          body.print-daily .daily-table td { overflow-wrap:anywhere; }
         }
     </style>
 </head>
@@ -701,10 +711,22 @@
           <div class="daily-board">
             <div class="daily-board-head">
               <div><h2>EFETIVIDADE DE MÁQUINAS | UNIDADE SÃO PAULO</h2><p class="daily-subtitle" id="daily-date"></p></div>
-              <button class="btn btn-primary no-print" onclick="printDailyBoard()">🖨️ Imprimir / Salvar PDF</button>
+              <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+                <button class="btn btn-primary" onclick="exportDailyImage('download')">📷 Baixar imagem (PNG)</button>
+                <button class="btn btn-primary" onclick="exportDailyImage('copy')">📋 Copiar imagem</button>
+                <button class="btn btn-primary" onclick="printDailyBoard()">🖨️ Imprimir / Salvar PDF</button>
+              </div>
             </div>
-            <h3 style="background:#ffc400;color:#111;text-align:center;padding:7px;margin-bottom:0;border:1px solid #b9a000">EQUIPAMENTOS EM MANUTENÇÃO</h3>
-            <div id="daily-board-content"></div>
+            <div class="daily-columns">
+              <section class="daily-panel">
+                <h3 class="daily-panel-title">EFETIVIDADE DE MÁQUINAS</h3>
+                <div id="daily-effectiveness"></div>
+              </section>
+              <section class="daily-panel">
+                <h3 class="daily-panel-title">EQUIPAMENTOS EM MANUTENÇÃO</h3>
+                <div id="daily-board-content"></div>
+              </section>
+            </div>
             <p style="font-size:12px;color:#666;margin-top:12px" class="no-print">Este quadro usa os registros da aba Manutenções Ativas e as observações cadastradas em cada máquina.</p>
           </div>
         </section>
@@ -879,6 +901,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script>
         const SUPABASE_URL = 'https://hhgrosuocgdmoxefddyl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_qFFZBeXxcGANo-UcPNUctQ_XU8MICim';
@@ -1049,21 +1072,95 @@
 
         function renderDailyBoard() {
             const content = document.getElementById('daily-board-content');
+            const effect = document.getElementById('daily-effectiveness');
             const dateEl = document.getElementById('daily-date');
-            if (!content || !dateEl) return;
+            if (!content || !dateEl || !effect) return;
             const now = new Date();
             dateEl.textContent = 'Atualizado em ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+
+            // Resumo de efetividade calculado a partir do estoque importado do Protheus.
+            const groups = new Map();
+            stockRows.forEach(r => {
+                // Agrupa as variações do Protheus (códigos como H/J/S/T entre parênteses)
+                // no modelo resumido usado na planilha de efetividade.
+                const rawDesc = String(r.descricao || r.produto || 'Sem descrição').trim();
+                const desc = rawDesc
+                    .replace(/\s*\([A-Z]\)\s*/gi, ' ')
+                    .replace(/ELEVATORIA/gi, 'ELEV')
+                    .replace(/METROS?/gi, 'M')
+                    .replace(/(\d)\s+M\b/gi, '$1M')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .toUpperCase();
+                if (!groups.has(desc)) groups.set(desc, {desc,total:0,locacao:0,disponivel:0,manutencao:0,reservado:0,transferencia:0});
+                const g = groups.get(desc);
+                const qtd = Number(r.total) || 0;
+                const status = String(r.status || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+                g.total += qtd;
+                g.locacao += Number(r.locado) || 0;
+                if (status.includes('DISPONIVEL')) g.disponivel += qtd;
+                else if (status.includes('MANUTEN')) g.manutencao += qtd;
+                else if (status.includes('CONTRATO GERADO')) g.reservado += qtd;
+                else if (status.includes('TRANSFER')) g.transferencia += qtd;
+            });
+            const fmtPct = g => (g.total ? (g.locacao / g.total * 100) : 0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
+            const groupsList = [...groups.values()].sort((a,b)=>a.desc.localeCompare(b.desc,'pt-BR'));
+            const total = groupsList.reduce((a,g)=>a+g.total,0);
+            const sum = k => groupsList.reduce((a,g)=>a+g[k],0);
+            effect.innerHTML = (groupsList.length ? `<div style="overflow-x:auto"><table class="daily-table" style="font-size:12px;margin-bottom:18px"><thead><tr><th>DESCRIÇÃO</th><th style="background:#ffff00">QTD.TOTAL</th><th style="background:#dcebf8">QTD.LOCAÇÃO</th><th style="background:#80c34b">DISPONÍVEL</th><th style="background:#f00;color:#fff">MANUTENÇÃO</th><th>RESERVADO</th><th>EM TRANSFERÊNCIA</th><th>EFETIVIDADE (%)</th></tr></thead><tbody>${groupsList.map(g=>`<tr><td>${escapeDaily(g.desc)}</td><td style="background:#ffff00;text-align:center">${g.total}</td><td style="background:#dcebf8;text-align:center">${g.locacao}</td><td style="background:#80c34b;text-align:center">${g.disponivel}</td><td style="background:#f00;color:#fff;text-align:center">${g.manutencao}</td><td style="text-align:center">${g.reservado}</td><td style="text-align:center">${g.transferencia}</td><td style="text-align:center">${fmtPct(g)}</td></tr>`).join('')}</tbody><tfoot><tr><th>Total Geral</th><th>${total}</th><th>${sum('locacao')}</th><th>${sum('disponivel')}</th><th>${sum('manutencao')}</th><th>${sum('reservado')}</th><th>${sum('transferencia')}</th><th>${(total?sum('locacao')/total*100:0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}%</th></tr></tfoot></table></div>` : `<div class="daily-empty" style="margin-bottom:18px">Importe o estoque do Protheus na aba Estoque Total para exibir a efetividade.</div>`);
+
             const ativos = machines.filter(m => m.status === 'ativa');
             if (!ativos.length) {
                 content.innerHTML = '<div class="daily-empty">Nenhuma máquina em manutenção no momento.</div>';
                 return;
             }
             const sorted = [...ativos].sort((a,b) => String(a.np).localeCompare(String(b.np), 'pt-BR', {numeric:true}));
-            content.innerHTML = `<table class="daily-table"><thead><tr><th>N.P.</th><th>Setor</th><th>Situação</th><th>Técnico</th><th>Entrada</th><th>Previsão</th><th>Status</th><th>Observações</th></tr></thead><tbody>${sorted.map(m => {
-                const st = getMachineStatus(m);
-                const stLabel = st === 'atrasado' ? 'ATRASADO' : st === 'vence-breve' ? 'VENCE EM BREVE' : st === 'liberado' ? 'LIBERADO' : st === 'liberado-aguardando' ? 'AGUARDANDO CUSTO' : 'NO PRAZO';
-                return `<tr><td><strong>${escapeDaily(m.np || '-')}</strong></td><td>${escapeDaily(m.setor || '-')}</td><td>${escapeDaily(m.situacao || '-')}</td><td>${escapeDaily(m.tecnico || '-')}</td><td>${escapeDaily(formatDate(m.dataEntrada))}</td><td>${escapeDaily(formatDate(m.dataPrevista))}</td><td class="daily-status">${stLabel}</td><td class="daily-observation">${escapeDaily(m.observacoes || 'Sem observações cadastradas')}</td></tr>`;
+            content.innerHTML = `<table class="daily-table daily-maintenance-table"><thead><tr><th>EQUIPAMENTO / N.P.</th><th>OBSERVAÇÕES / SERVIÇO NECESSÁRIO</th></tr></thead><tbody>${sorted.map(m => {
+                const equipamento = [m.situacao, m.np ? 'N.P. ' + m.np : ''].filter(Boolean).join(' — ') || '-';
+                return `<tr><td><strong>${escapeDaily(equipamento)}</strong></td><td class="daily-observation">${escapeDaily(m.observacoes || 'Sem observações cadastradas')}</td></tr>`;
             }).join('')}</tbody></table>`;
+        }
+
+        async function exportDailyImage(mode) {
+            if (typeof html2canvas === 'undefined') { alert('Biblioteca de imagem não carregou (verifique a internet).'); return; }
+            renderDailyBoard();
+            const board = document.querySelector('#tab-quadro .daily-board');
+            const W = 1800; // largura fixa da imagem: as duas tabelas cabem lado a lado, sem cortes
+            try {
+                const canvas = await html2canvas(board, {
+                    scale: 1.5, backgroundColor: '#ffffff', windowWidth: W + 100,
+                    onclone: (doc) => {
+                        const tab = doc.getElementById('tab-quadro');
+                        tab.style.cssText += ';display:block;max-width:none;overflow:visible;border:0;box-shadow:none;';
+                        let p = tab.parentElement;
+                        while (p && p !== doc.body) { p.style.maxWidth = 'none'; p.style.overflow = 'visible'; p = p.parentElement; }
+                        const b = doc.querySelector('#tab-quadro .daily-board');
+                        b.style.cssText += ';width:' + W + 'px;max-width:none;border:0;border-radius:0;padding:28px;';
+                        b.querySelectorAll('.no-print').forEach(e => e.style.display = 'none');
+                        b.querySelectorAll('#daily-effectiveness > div').forEach(e => e.style.overflow = 'visible');
+                        b.querySelector('.daily-columns').style.gridTemplateColumns = 'minmax(0,1.35fr) minmax(0,1fr)';
+                        b.querySelectorAll('.daily-table').forEach(t => t.style.fontSize = '15px');
+                        b.querySelectorAll('.daily-panel-title').forEach(t => t.style.fontSize = '17px');
+                        b.querySelector('h2').style.fontSize = '30px';
+                    }
+                });
+                const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+                const nome = 'efetividade-maquinas-' + new Date().toISOString().slice(0,10) + '.png';
+                if (mode === 'copy') {
+                    try {
+                        await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+                        alert('Imagem copiada! Cole (Ctrl+V) na conversa do WhatsApp.');
+                        return;
+                    } catch (e) { /* sem permissão: cai para o download */ }
+                }
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob); a.download = nome;
+                document.body.appendChild(a); a.click(); a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            } catch (err) {
+                console.error(err);
+                alert('Não foi possível gerar a imagem: ' + err.message);
+            }
         }
 
         function printDailyBoard() {
@@ -1102,6 +1199,14 @@
                 );
             }
             
+            // Ordenar por Dias em Manutenção: maior para menor
+            const hojeOrdenacao = new Date().toISOString().split('T')[0];
+            ativas.sort((a, b) => {
+                const diasA = daysBetween(a.dataEntrada, hojeOrdenacao);
+                const diasB = daysBetween(b.dataEntrada, hojeOrdenacao);
+                return diasB - diasA;
+            });
+
             if (ativas.length === 0) {
                 tbody.innerHTML = '';
                 empty.style.display = 'block';
@@ -1265,7 +1370,7 @@
             document.getElementById('setor').value = machine.setor;
             document.getElementById('observacoes').value = machine.observacoes || '';
             document.getElementById('pdf-files').value = '';
-            document.getElementById('document-list').innerHTML = renderDocuments(machine);
+            document.getElementById('document-list').innerHTML = renderDocuments(machine, true);
             
             document.getElementById('modal').classList.add('active');
         }
@@ -1337,12 +1442,37 @@
             return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
         }
 
-        function renderDocuments(machine) {
+        function renderDocuments(machine, editable = false) {
             const docs = Array.isArray(machine.documentos) ? machine.documentos : [];
             if (!docs.length) return '<span style="color:#888">—</span>';
-            return '<div style="display:flex;flex-direction:column;gap:4px">' + docs.map((doc, index) =>
-                `<button type="button" class="btn btn-secondary btn-small" onclick="openDocument(${machine.id},${index})" title="Abrir PDF">📄 ${escapeHtml(doc.name || 'Laudo PDF')}</button>`
-            ).join('') + '</div>';
+            return '<div style="display:flex;flex-direction:column;gap:4px">' + docs.map((doc, index) => {
+                const openBtn = `<button type="button" class="btn btn-secondary btn-small" onclick="openDocument(${machine.id},${index})" title="Abrir PDF">📄 ${escapeHtml(doc.name || 'Laudo PDF')}</button>`;
+                if (!editable) return openBtn;
+                return `<div style="display:flex;gap:6px;align-items:center">${openBtn}<button type="button" class="btn btn-secondary btn-small" style="color:#d83a52" onclick="deleteDocument(${machine.id},${index})" title="Apagar PDF">🗑️ Apagar</button></div>`;
+            }).join('') + '</div>';
+        }
+
+        async function deleteDocument(machineId, docIndex) {
+            if (!isAdmin) return alert('Acesso somente para visualização.');
+            const machine = machines.find(m => m.id === Number(machineId));
+            const doc = machine && Array.isArray(machine.documentos) ? machine.documentos[docIndex] : null;
+            if (!doc) return alert('Documento não encontrado.');
+            if (!confirm('Apagar o laudo "' + (doc.name || 'PDF') + '"? Essa ação não pode ser desfeita.')) return;
+
+            // 1) tira o PDF do cadastro
+            machine.documentos.splice(docIndex, 1);
+            const saved = await saveData();
+            if (!saved) { machine.documentos.splice(docIndex, 0, doc); return; }
+
+            // 2) apaga o arquivo do armazenamento
+            if (doc.path) {
+                const { data, error } = await supabaseClient.storage.from('laudos-manutencao').remove([doc.path]);
+                if (error || !data || !data.length) {
+                    alert('O laudo foi removido do cadastro, mas o arquivo não pôde ser apagado do armazenamento' + (error ? ': ' + error.message : ' (falta permissão de exclusão no bucket "laudos-manutencao")') + '.');
+                }
+            }
+            document.getElementById('document-list').innerHTML = renderDocuments(machine, true);
+            render();
         }
 
         async function openDocument(machineId, docIndex) {
@@ -1435,6 +1565,7 @@
           stockRows=(data||[]).filter(r=>String(r.lote??'').trim()!=='').map(r=>({produto:r.produto,descricao:r.descricao,lote:r.lote,status:r.status,locado:Number(r.locado)||0,total:Number(r.total)||0,contrato:r.contrato,cliente:r.cliente}));
           document.getElementById('stock-info').textContent=stockRows.length?`Estoque salvo no Supabase: ${stockRows.length} registros da família PLATAFORMA.`:'Nenhum estoque importado ainda.';
           renderStock();
+          renderDailyBoard();
         }
         async function importStock(event) {
           if(!isAdmin){alert('Somente o administrador pode importar o estoque.');event.target.value='';return;}
@@ -1467,6 +1598,7 @@
           document.getElementById('stk-loc').textContent=sum(r=>r.locado);
           document.getElementById('stk-man').textContent=sum(r=>/MANUTEN/i.test(r.status)?r.total:0);
           const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+          renderDailyBoard();
           document.getElementById('tbody-estoque').innerHTML=rows.map(r=>`<tr><td>${esc(r.contrato)}</td><td>${esc(r.cliente)}</td><td>${esc(r.produto)}</td><td>${esc(r.descricao)}</td><td>${esc(r.lote)}</td><td>${esc(r.status)}</td><td>${r.locado}</td><td>${r.total}</td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:22px">Nenhum registro para mostrar.</td></tr>';
         }
 
