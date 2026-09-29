@@ -686,7 +686,7 @@
           </div>
           <input id="stock-search" class="search-input" placeholder="🔎 Buscar por produto, lote ou status..." oninput="renderStock()" style="width:100%;margin-bottom:14px">
           <p id="stock-info" style="margin:8px 0;color:#676879">Nenhuma planilha importada nesta sessão.</p>
-          <div class="table-container"><table><thead><tr><th>Produto</th><th>Descrição</th><th>Lote / N.P.</th><th>Status Protheus</th><th>Locado</th><th>Total</th></tr></thead><tbody id="tbody-estoque"></tbody></table></div>
+          <div class="table-container"><table><thead><tr><th>Contrato</th><th>Cliente</th><th>Produto</th><th>Descrição</th><th>Lote / N.P.</th><th>Status Protheus</th><th>Locado</th><th>Total</th></tr></thead><tbody id="tbody-estoque"></tbody></table></div>
         </section>
 
         <!-- Controles -->
@@ -889,6 +889,7 @@
             document.getElementById('session-info').textContent = (isAdmin ? 'Administrador' : 'Somente visualização') + ' • ' + user.email;
             document.querySelector('.container').style.display = 'block';
             await loadData();
+            await loadStock();
             setTodayAsDefault();
             render();
             supabaseClient.channel('machines-live').on('postgres_changes', { event: '*', schema: 'public', table: 'machines' }, async () => {
@@ -1357,7 +1358,15 @@
         }
 
 
+        async function loadStock(){
+          const {data,error}=await supabaseClient.from('estoque_protheus').select('*').order('cliente').order('contrato');
+          if(error){console.warn('Estoque ainda não configurado:',error.message); document.getElementById('stock-info').textContent='Configure a tabela de estoque no Supabase para carregar os dados.'; stockRows=[]; renderStock(); return;}
+          stockRows=(data||[]).map(r=>({produto:r.produto,descricao:r.descricao,lote:r.lote,status:r.status,locado:Number(r.locado)||0,total:Number(r.total)||0,contrato:r.contrato,cliente:r.cliente}));
+          document.getElementById('stock-info').textContent=stockRows.length?`Estoque salvo no Supabase: ${stockRows.length} registros da família PLATAFORMA.`:'Nenhum estoque importado ainda.';
+          renderStock();
+        }
         async function importStock(event) {
+          if(!isAdmin){alert('Somente o administrador pode importar o estoque.');event.target.value='';return;}
           const file=event.target.files && event.target.files[0]; if(!file) return;
           try {
             const data=await file.arrayBuffer(); const wb=XLSX.read(data,{type:'array'});
@@ -1366,23 +1375,28 @@
             const hi=raw.findIndex(r=>r.some(c=>norm(c)==='DESCRICAO DA FAMILIA') && r.some(c=>norm(c)==='STATUS BEM'));
             if(hi<0) throw new Error('Não encontrei os cabeçalhos Descricao da Familia e Status Bem.');
             const headers=raw[hi].map(norm), ix=k=>headers.indexOf(norm(k));
-            const family=ix('Descricao da Familia'), prod=ix('Cod. Produto'), desc=ix('Descricao Produto'), lote=ix('Lote'), status=ix('Status Bem'), loc=ix('Locado'), total=ix('Total');
-            stockRows=raw.slice(hi+1).filter(r=>norm(r[family])==='PLATAFORMA').map(r=>({produto:r[prod],descricao:r[desc],lote:r[lote],status:r[status],locado:Number(r[loc])||0,total:Number(r[total])||0})).filter(r=>r.produto||r.lote);
-            document.getElementById('stock-info').textContent=`Arquivo: ${file.name} — ${stockRows.length} registros da família PLATAFORMA. Importação apenas para visualização nesta sessão.`;
-            renderStock(); alert('Planilha lida. Foram encontrados '+stockRows.length+' registros da família PLATAFORMA.');
-          } catch(err) { alert('Erro ao importar: '+err.message); }
+            const family=ix('Descricao da Familia'), prod=ix('Cod. Produto'), desc=ix('Descricao Produto'), lote=ix('Lote'), status=ix('Status Bem'), loc=ix('Locado'), total=ix('Total'), contrato=ix('Contrato'), cliente=ix('Cliente'), filial=ix('Cod. Filial');
+            const rows=raw.slice(hi+1).filter(r=>norm(r[family])==='PLATAFORMA').map(r=>{
+              const c=String(r[contrato]??'').trim(), cl=String(r[cliente]??'').trim(), pr=String(r[prod]??'').trim(), lo=String(r[lote]??'').trim(), fi=String(r[filial]??'').trim();
+              return {row_key:[fi,c,pr,lo].join('|'),contrato:c,cliente:cl,produto:pr,descricao:String(r[desc]??''),lote:lo,status:String(r[status]??''),locado:Number(r[loc])||0,total:Number(r[total])||0,familia:'PLATAFORMA'};
+            }).filter(r=>r.produto||r.lote);
+            if(!rows.length) throw new Error('Nenhuma linha da família PLATAFORMA encontrada.');
+            document.getElementById('stock-info').textContent='Salvando '+rows.length+' registros no Supabase...';
+            for(let i=0;i<rows.length;i+=300){const {error}=await supabaseClient.from('estoque_protheus').upsert(rows.slice(i,i+300),{onConflict:'row_key'});if(error)throw error;}
+            await loadStock(); alert('Estoque salvo no Supabase! '+rows.length+' registros importados.');
+          } catch(err) { alert('Erro ao importar/salvar: '+err.message+'\nConfira se a tabela e as permissões do Supabase foram configuradas.'); }
           event.target.value='';
         }
         function renderStock(){
           const q=(document.getElementById('stock-search')?.value||'').toLowerCase();
-          const rows=stockRows.filter(r=>[r.produto,r.descricao,r.lote,r.status].join(' ').toLowerCase().includes(q));
+          const rows=stockRows.filter(r=>[r.contrato,r.cliente,r.produto,r.descricao,r.lote,r.status].join(' ').toLowerCase().includes(q));
           const sum=f=>stockRows.reduce((a,r)=>a+f(r),0);
           document.getElementById('stk-total').textContent=sum(r=>r.total);
           document.getElementById('stk-disp').textContent=sum(r=>/DISPONIVEL/i.test(r.status)?r.total:0);
           document.getElementById('stk-loc').textContent=sum(r=>r.locado);
           document.getElementById('stk-man').textContent=sum(r=>/MANUTEN/i.test(r.status)?r.total:0);
           const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-          document.getElementById('tbody-estoque').innerHTML=rows.map(r=>`<tr><td>${esc(r.produto)}</td><td>${esc(r.descricao)}</td><td>${esc(r.lote)}</td><td>${esc(r.status)}</td><td>${r.locado}</td><td>${r.total}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:22px">Nenhum registro para mostrar.</td></tr>';
+          document.getElementById('tbody-estoque').innerHTML=rows.map(r=>`<tr><td>${esc(r.contrato)}</td><td>${esc(r.cliente)}</td><td>${esc(r.produto)}</td><td>${esc(r.descricao)}</td><td>${esc(r.lote)}</td><td>${esc(r.status)}</td><td>${r.locado}</td><td>${r.total}</td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:22px">Nenhum registro para mostrar.</td></tr>';
         }
 
         // Filtros
