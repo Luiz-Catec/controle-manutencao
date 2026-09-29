@@ -594,7 +594,26 @@
             font-weight: 600;
             color: #0073ea;
         }
-    </style>
+    
+        .stock-dashboard{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:16px;margin:16px 0;align-items:start}
+        .stock-summary-panel,.stock-side-panel{background:#fff;border:1px solid #e1e5ee;border-radius:10px;padding:14px;min-width:0}
+        .stock-summary-panel h3,.stock-side-panel h3{font-size:16px;margin:0 0 12px;color:#202638}
+        .stock-summary-table{font-size:12px;min-width:760px}
+        .stock-summary-table th{background:#e8edf7;color:#202638;white-space:normal}
+        .stock-summary-table th:nth-child(2){background:#fff36a}
+        .stock-summary-table th:nth-child(4){background:#75c34b}
+        .stock-summary-table th:nth-child(5){background:#ef2929;color:#fff}
+        .stock-summary-table td{text-align:center;white-space:nowrap}
+        .stock-summary-table td:first-child{text-align:left;white-space:normal;min-width:190px}
+        .stock-summary-table tfoot td{font-weight:700;background:#e8edf7}
+        .stock-summary-table .status-maint{background:#ffe0e0}
+        .stock-summary-table .status-free{background:#e4f4d8}
+        .stock-summary-table .status-reserved{background:#fff5c7}
+        .stock-legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;margin-top:12px;color:#4a5263}
+        .stock-legend strong{width:100%;font-size:14px;color:#202638}
+        .legend-dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}.legend-dot.red{background:#ef2929}.legend-dot.green{background:#75c34b}.legend-dot.yellow{background:#fff36a}
+        @media(max-width:950px){.stock-dashboard{grid-template-columns:1fr}.stock-summary-panel .table-container{overflow-x:auto}}
+</style>
 </head>
 <body>
     <div id="auth-screen" class="auth-screen">
@@ -678,7 +697,21 @@
             <div><h2>📦 Estoque Total — Plataformas</h2><p style="color:#676879;margin-top:5px">Somente produtos da família PLATAFORMA, conforme relatório do Protheus.</p></div>
             <label class="btn btn-primary" style="cursor:pointer">📥 Importar Excel do Protheus<input id="stock-file" type="file" accept=".xlsx,.xls" style="display:none" onchange="importStock(event)"></label>
           </div>
-          <div class="stats-grid" style="margin-bottom:18px">
+          <div class="stock-dashboard">
+            <div class="stock-summary-panel">
+              <h3>Resumo de efetividade por modelo</h3>
+              <div class="table-container"><table class="stock-summary-table">
+                <thead><tr><th>Descrição</th><th>Qtd. total</th><th>Qtd. locação</th><th>Disponível</th><th>Manutenção</th><th>Reservado</th><th>Em transferência</th><th>Efetividade (%)</th></tr></thead>
+                <tbody id="tbody-stock-summary"></tbody>
+              </table></div>
+            </div>
+            <div class="stock-side-panel">
+              <h3>Equipamentos em manutenção</h3>
+              <div class="table-container"><table><thead><tr><th>Modelo / Lote</th><th>Contrato / Cliente</th></tr></thead><tbody id="tbody-stock-maintenance"></tbody></table></div>
+              <div class="stock-legend"><strong>Legenda</strong><span><i class="legend-dot red"></i> Manutenção</span><span><i class="legend-dot green"></i> Disponível</span><span><i class="legend-dot yellow"></i> Reservado / locado</span></div>
+            </div>
+          </div>
+          <div class="stats-grid" style="margin:18px 0">
             <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="stk-total">0</div></div>
             <div class="stat-card"><div class="stat-label">Disponíveis</div><div class="stat-value" id="stk-disp">0</div></div>
             <div class="stat-card"><div class="stat-label">Locadas</div><div class="stat-value" id="stk-loc">0</div></div>
@@ -1354,6 +1387,9 @@
             ['ativas','historico','estoque'].forEach(id => {
                 const el=document.getElementById('tab-'+id); if(el) el.style.display=(tab===id?'block':'none');
             });
+            // Os filtros de manutenção ficam ocultos na aba de estoque.
+            const maintenanceControls=document.querySelector('.controls');
+            if(maintenanceControls) maintenanceControls.style.display=(tab==='estoque'?'none':'block');
             if(tab==='estoque') renderStock();
         }
 
@@ -1391,11 +1427,19 @@
           const q=(document.getElementById('stock-search')?.value||'').toLowerCase();
           const rows=stockRows.filter(r=>[r.contrato,r.cliente,r.produto,r.descricao,r.lote,r.status].join(' ').toLowerCase().includes(q));
           const sum=f=>stockRows.reduce((a,r)=>a+f(r),0);
+          const statusType=s=>{s=String(s||'').toUpperCase();if(s.includes('MANUTEN'))return'man';if(s.includes('DISPON'))return'disp';if(s.includes('CONTRATO GERADO'))return'res';if(s.includes('TRANSFER'))return'trans';if(s.includes('NOTA FISCAL DE REMESSA GERADA'))return'loc';return'other';};
           document.getElementById('stk-total').textContent=sum(r=>r.total);
-          document.getElementById('stk-disp').textContent=sum(r=>/DISPONIVEL/i.test(r.status)?r.total:0);
+          document.getElementById('stk-disp').textContent=sum(r=>statusType(r.status)==='disp'?r.total:0);
           document.getElementById('stk-loc').textContent=sum(r=>r.locado);
-          document.getElementById('stk-man').textContent=sum(r=>/MANUTEN/i.test(r.status)?r.total:0);
+          document.getElementById('stk-man').textContent=sum(r=>statusType(r.status)==='man'?r.total:0);
           const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+          const groups=new Map();
+          stockRows.forEach(r=>{const name=String(r.descricao||r.produto||'Sem descrição').trim();if(!groups.has(name))groups.set(name,{name,total:0,loc:0,disp:0,man:0,res:0,trans:0});const g=groups.get(name),k=statusType(r.status);g.total+=r.total;g.loc+=r.locado;if(k==='disp')g.disp+=r.total;if(k==='man')g.man+=r.total;if(k==='res')g.res+=r.total;if(k==='trans')g.trans+=r.total;});
+          const grouped=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+          const totals=grouped.reduce((a,g)=>{['total','loc','disp','man','res','trans'].forEach(k=>a[k]+=g[k]);return a;},{total:0,loc:0,disp:0,man:0,res:0,trans:0});
+          document.getElementById('tbody-stock-summary').innerHTML=grouped.map(g=>`<tr><td>${esc(g.name)}</td><td>${g.total}</td><td>${g.loc}</td><td class="status-free">${g.disp}</td><td class="status-maint">${g.man}</td><td class="status-reserved">${g.res}</td><td>${g.trans}</td><td>${g.total?(g.loc/g.total*100).toFixed(2).replace('.',',')+'%':'0,00%'}</td></tr>`).join('')+`<tr><td><strong>Total geral</strong></td><td><strong>${totals.total}</strong></td><td><strong>${totals.loc}</strong></td><td><strong>${totals.disp}</strong></td><td><strong>${totals.man}</strong></td><td><strong>${totals.res}</strong></td><td><strong>${totals.trans}</strong></td><td><strong>${totals.total?(totals.loc/totals.total*100).toFixed(2).replace('.',','):'0,00'}%</strong></td></tr>`;
+          const maint=rows.filter(r=>statusType(r.status)==='man');
+          document.getElementById('tbody-stock-maintenance').innerHTML=maint.map(r=>`<tr><td>${esc(r.descricao||r.produto)}<br><small>Lote: ${esc(r.lote)}</small></td><td>${esc(r.contrato)}<br><small>${esc(r.cliente)}</small></td></tr>`).join('')||'<tr><td colspan="2" style="text-align:center;padding:14px">Nenhum equipamento em manutenção.</td></tr>';
           document.getElementById('tbody-estoque').innerHTML=rows.map(r=>`<tr><td>${esc(r.contrato)}</td><td>${esc(r.cliente)}</td><td>${esc(r.produto)}</td><td>${esc(r.descricao)}</td><td>${esc(r.lote)}</td><td>${esc(r.status)}</td><td>${r.locado}</td><td>${r.total}</td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:22px">Nenhum registro para mostrar.</td></tr>';
         }
 
