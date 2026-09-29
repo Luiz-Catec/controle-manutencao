@@ -670,7 +670,24 @@
             <button class="tab" onclick="switchTab('historico')">
                 <span>📋 Histórico de Concluídas</span>
             </button>
+            <button class="tab" onclick="switchTab('estoque')"><span>📦 Estoque Total</span></button>
         </div>
+
+        <section id="tab-estoque" class="table-container" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+            <div><h2>📦 Estoque Total — Plataformas</h2><p style="color:#676879;margin-top:5px">Somente produtos da família PLATAFORMA, conforme relatório do Protheus.</p></div>
+            <label class="btn btn-primary" style="cursor:pointer">📥 Importar Excel do Protheus<input id="stock-file" type="file" accept=".xlsx,.xls" style="display:none" onchange="importStock(event)"></label>
+          </div>
+          <div class="stats-grid" style="margin-bottom:18px">
+            <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="stk-total">0</div></div>
+            <div class="stat-card"><div class="stat-label">Disponíveis</div><div class="stat-value" id="stk-disp">0</div></div>
+            <div class="stat-card"><div class="stat-label">Locadas</div><div class="stat-value" id="stk-loc">0</div></div>
+            <div class="stat-card"><div class="stat-label">Em manutenção</div><div class="stat-value" id="stk-man">0</div></div>
+          </div>
+          <input id="stock-search" class="search-input" placeholder="🔎 Buscar por produto, lote ou status..." oninput="renderStock()" style="width:100%;margin-bottom:14px">
+          <p id="stock-info" style="margin:8px 0;color:#676879">Nenhuma planilha importada nesta sessão.</p>
+          <div class="table-container"><table><thead><tr><th>Produto</th><th>Descrição</th><th>Lote / N.P.</th><th>Status Protheus</th><th>Locado</th><th>Total</th></tr></thead><tbody id="tbody-estoque"></tbody></table></div>
+        </section>
 
         <!-- Controles -->
         <div class="controls">
@@ -825,6 +842,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
         const SUPABASE_URL = 'https://hhgrosuocgdmoxefddyl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_qFFZBeXxcGANo-UcPNUctQ_XU8MICim';
@@ -838,6 +856,7 @@
         let machines = [];
         let currentTab = 'ativas';
         let currentFilter = 'todos';
+        let stockRows = [];
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', async function() {
@@ -1331,13 +1350,39 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.tab').classList.add('active');
             
-            if (tab === 'ativas') {
-                document.getElementById('tab-ativas').style.display = 'block';
-                document.getElementById('tab-historico').style.display = 'none';
-            } else {
-                document.getElementById('tab-ativas').style.display = 'none';
-                document.getElementById('tab-historico').style.display = 'block';
-            }
+            ['ativas','historico','estoque'].forEach(id => {
+                const el=document.getElementById('tab-'+id); if(el) el.style.display=(tab===id?'block':'none');
+            });
+            if(tab==='estoque') renderStock();
+        }
+
+
+        async function importStock(event) {
+          const file=event.target.files && event.target.files[0]; if(!file) return;
+          try {
+            const data=await file.arrayBuffer(); const wb=XLSX.read(data,{type:'array'});
+            const ws=wb.Sheets[wb.SheetNames[0]]; const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+            const norm=v=>String(v??'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            const hi=raw.findIndex(r=>r.some(c=>norm(c)==='DESCRICAO DA FAMILIA') && r.some(c=>norm(c)==='STATUS BEM'));
+            if(hi<0) throw new Error('Não encontrei os cabeçalhos Descricao da Familia e Status Bem.');
+            const headers=raw[hi].map(norm), ix=k=>headers.indexOf(norm(k));
+            const family=ix('Descricao da Familia'), prod=ix('Cod. Produto'), desc=ix('Descricao Produto'), lote=ix('Lote'), status=ix('Status Bem'), loc=ix('Locado'), total=ix('Total');
+            stockRows=raw.slice(hi+1).filter(r=>norm(r[family])==='PLATAFORMA').map(r=>({produto:r[prod],descricao:r[desc],lote:r[lote],status:r[status],locado:Number(r[loc])||0,total:Number(r[total])||0})).filter(r=>r.produto||r.lote);
+            document.getElementById('stock-info').textContent=`Arquivo: ${file.name} — ${stockRows.length} registros da família PLATAFORMA. Importação apenas para visualização nesta sessão.`;
+            renderStock(); alert('Planilha lida. Foram encontrados '+stockRows.length+' registros da família PLATAFORMA.');
+          } catch(err) { alert('Erro ao importar: '+err.message); }
+          event.target.value='';
+        }
+        function renderStock(){
+          const q=(document.getElementById('stock-search')?.value||'').toLowerCase();
+          const rows=stockRows.filter(r=>[r.produto,r.descricao,r.lote,r.status].join(' ').toLowerCase().includes(q));
+          const sum=f=>stockRows.reduce((a,r)=>a+f(r),0);
+          document.getElementById('stk-total').textContent=sum(r=>r.total);
+          document.getElementById('stk-disp').textContent=sum(r=>/DISPONIVEL/i.test(r.status)?r.total:0);
+          document.getElementById('stk-loc').textContent=sum(r=>r.locado);
+          document.getElementById('stk-man').textContent=sum(r=>/MANUTEN/i.test(r.status)?r.total:0);
+          const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+          document.getElementById('tbody-estoque').innerHTML=rows.map(r=>`<tr><td>${esc(r.produto)}</td><td>${esc(r.descricao)}</td><td>${esc(r.lote)}</td><td>${esc(r.status)}</td><td>${r.locado}</td><td>${r.total}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:22px">Nenhum registro para mostrar.</td></tr>';
         }
 
         // Filtros
