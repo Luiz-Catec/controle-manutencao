@@ -1366,7 +1366,7 @@
           <input type="hidden" id="program-edit-id">
           <div class="form-group"><label for="program-data">Data *</label><input id="program-data" type="date" required></div>
           <div class="form-group"><label for="program-tecnico">Técnico *</label><input id="program-tecnico" list="program-tecnicos-list" required placeholder="Nome do técnico"><datalist id="program-tecnicos-list"></datalist></div>
-          <div class="form-group"><label for="program-maquina">Máquina *</label><input id="program-maquina" list="program-maquinas-list" required placeholder="Identificação da máquina"><datalist id="program-maquinas-list"></datalist></div>
+          <div class="form-group"><label for="program-maquina">Máquina / N.P. <span style="font-weight:500;color:var(--muted)">(opcional)</span></label><input id="program-maquina" list="program-maquinas-list" placeholder="Informe se o serviço for em uma máquina"><datalist id="program-maquinas-list"></datalist></div>
           <div class="form-group"><label for="program-servico">Serviço *</label><input id="program-servico" required placeholder="Ex.: Pintura" list="program-servicos-list" oninput="toggleClienteObraProgramacao()" onchange="toggleClienteObraProgramacao()"><datalist id="program-servicos-list"><option value="Pintura"><option value="Lavagem"><option value="Serviço externo"><option value="Manutenção preventiva"><option value="Manutenção corretiva"><option value="Diagnóstico"><option value="Inspeção geral"><option value="Revisão elétrica"><option value="Revisão hidráulica"><option value="Revisão mecânica"><option value="Teste operacional"></datalist></div>
           <div class="form-group" id="program-cliente-obra-group" style="display:none;"><label for="program-cliente-obra">Cliente / Obra *</label><input id="program-cliente-obra" placeholder="Nome do cliente ou obra" oninput="toggleClienteObraProgramacao()"></div>
           <div class="form-group"><label>Horário</label><div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center"><input id="program-horario-inicio" type="time" aria-label="Horário inicial"><span style="font-weight:700;color:var(--muted)">até</span><input id="program-horario-fim" type="time" aria-label="Horário final"></div></div>
@@ -2201,7 +2201,7 @@
             const clienteObra=document.getElementById('program-cliente-obra').value.trim();
             const isServicoExterno=servico.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')==='servico externo';
             const row={data:document.getElementById('program-data').value,tecnico:document.getElementById('program-tecnico').value.trim(),maquina:document.getElementById('program-maquina').value.trim(),servico,cliente_obra:isServicoExterno?clienteObra:null,horario_inicio:inicio,horario_fim:fim,prioridade:document.getElementById('program-prioridade').value,status:document.getElementById('program-status').value,observacoes:document.getElementById('program-observacoes').value.trim()};
-            if(!row.data||!row.tecnico||!row.maquina||!row.servico) return alert('Preencha data, técnico, máquina e serviço.');
+            if(!row.data||!row.tecnico||!row.servico) return alert('Preencha data, técnico e serviço.');
             if(isServicoExterno && !clienteObra) return alert('Informe o nome do cliente/obra para o serviço externo.');
             let q;
             if(id) q=supabaseClient.from('programacao_tecnicos').update(row).eq('id',id); else q=supabaseClient.from('programacao_tecnicos').insert(row);
@@ -2256,7 +2256,17 @@
         function renderProgramacao(){
             const list=document.getElementById('programacao-list'); if(!list) return;
             const date=document.getElementById('program-date')?.value || programToday();
-            const rows=programacoes.filter(p=>p.data===date).sort((a,b)=>String(a.horario_inicio||a.horario||'99:99').localeCompare(String(b.horario_inicio||b.horario||'99:99'),'pt-BR')||a.tecnico.localeCompare(b.tecnico,'pt-BR'));
+            const rows=programacoes.filter(p=>p.data===date).sort((a,b)=>{
+                // Mantém cada técnico agrupado: primeiro pelo horário em que ele começa o dia,
+                // depois pelo nome e, dentro do grupo, pela sequência dos horários.
+                const horaA=String(a.horario_inicio||a.horario||'99:99');
+                const horaB=String(b.horario_inicio||b.horario||'99:99');
+                const tecnicoA=String(a.tecnico||'').trim();
+                const tecnicoB=String(b.tecnico||'').trim();
+                const primeiroA=String((programacoes.filter(x=>x.data===date && String(x.tecnico||'').trim().toLowerCase()===tecnicoA.toLowerCase()).map(x=>x.horario_inicio||x.horario).filter(Boolean).sort()[0])||'99:99');
+                const primeiroB=String((programacoes.filter(x=>x.data===date && String(x.tecnico||'').trim().toLowerCase()===tecnicoB.toLowerCase()).map(x=>x.horario_inicio||x.horario).filter(Boolean).sort()[0])||'99:99');
+                return primeiroA.localeCompare(primeiroB,'pt-BR') || tecnicoA.localeCompare(tecnicoB,'pt-BR') || horaA.localeCompare(horaB,'pt-BR');
+            });
             document.getElementById('prog-stat-total').textContent=rows.length;
             document.getElementById('prog-stat-pendente').textContent=rows.filter(p=>p.status==='Pendente').length;
             document.getElementById('prog-stat-andamento').textContent=rows.filter(p=>p.status==='Em andamento').length;
@@ -2272,7 +2282,7 @@
               return `<div class="program-item">
               <div class="program-time">${esc(p.horario_inicio ? (p.horario_fim ? formatProgramTime(p.horario_inicio)+' às '+formatProgramTime(p.horario_fim) : formatProgramTime(p.horario_inicio)) : formatProgramTime(p.horario))}</div>
               <div class="program-machine">${esc(p.tecnico)}</div>
-              <div class="program-machine">${esc(p.maquina)}</div>
+              <div class="program-machine">${p.maquina ? esc(p.maquina) : '<span style="color:#98a2b3;font-weight:500">Não se aplica</span>'}</div>
               <div class="program-machine">${dias===null?'<span style="color:#98a2b3;font-weight:500">—</span>':`<strong>${dias}</strong> dia${dias===1?'':'s'}`}</div>
               <div class="program-service">${esc(p.servico)}</div>
               <div class="program-service">${esc(clienteObra)}</div>
