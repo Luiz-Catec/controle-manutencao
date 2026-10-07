@@ -1457,6 +1457,7 @@
         const SUPABASE_URL = 'https://hhgrosuocgdmoxefddyl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_qFFZBeXxcGANo-UcPNUctQ_XU8MICim';
         const ADMIN_UID = '561f8c7d-eeac-4812-b3ba-b164ac45fd20';
+        function hasAdminAccess(){ return !!currentUser && String(currentUser.id).toLowerCase() === ADMIN_UID.toLowerCase(); }
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUser = null;
         let isAdmin = false;
@@ -1493,7 +1494,7 @@
 
         async function enterApp(user) {
             currentUser = user;
-            isAdmin = user.id === ADMIN_UID;
+            isAdmin = hasAdminAccess();
             document.body.classList.toggle('viewer', !isAdmin);
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('session-bar').style.display = 'flex';
@@ -2289,7 +2290,7 @@
               <div class="program-service">${p.observacoes?esc(p.observacoes):'<span style="color:#98a2b3;font-weight:500">—</span>'}</div>
               <div><span class="program-badge ${programPriorityClass(p.prioridade)}">${esc(p.prioridade)}</span></div>
               <div><span class="program-badge ${programBadgeClass(p.status)}">${esc(p.status)}</span></div>
-              <div class="program-actions">${isAdmin?`<button class="icon-btn" onclick="openProgramacaoModal('${String(p.id).replace(/'/g,"\'")}')" title="Editar">✏️</button><button class="icon-btn" onclick="deleteProgramacao('${String(p.id).replace(/'/g,"\'")}')" title="Excluir">🗑️</button>`:''}</div>
+              <div class="program-actions">${hasAdminAccess()?`<button class="icon-btn" onclick="openProgramacaoModal('${String(p.id).replace(/'/g,"\'")}')" title="Editar">✏️</button><button class="icon-btn" onclick="deleteProgramacao('${String(p.id).replace(/'/g,"\'")}')" title="Excluir">🗑️</button>`:''}</div>
             </div>`;
             }).join('');
             list.innerHTML=header+body;
