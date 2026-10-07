@@ -846,6 +846,72 @@
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline:none; border-color:var(--blue); background:#fff; box-shadow:0 0 0 4px rgba(0,115,234,.12); }
 
+        /* ===== Programação dos Técnicos — visual corporativo ===== */
+        .program-wrap { padding:24px; background:transparent; }
+        .program-head {
+            display:flex; justify-content:space-between; align-items:center; gap:18px; flex-wrap:wrap;
+            margin:-24px -24px 20px; padding:22px 24px;
+            background:linear-gradient(135deg,var(--blue) 0%,#0060b9 100%);
+            color:#fff; border-bottom:3px solid var(--yellow); box-shadow:0 4px 14px rgba(0,115,234,.18);
+        }
+        .program-head h2 { color:#fff; font-family:'Poppins',sans-serif; font-size:21px; font-weight:700; margin:0; }
+        .program-head p { color:rgba(255,255,255,.86); font-size:12px; margin:4px 0 0; }
+        .program-tools { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+        .program-head .program-tools { margin:0; }
+        .program-date { padding:10px 12px; border:1px solid #d8dce8; border-radius:8px; background:#fff; color:#323338; font:inherit; min-height:40px; }
+        .program-head .btn { min-height:40px; border-radius:8px; font-weight:600; box-shadow:none; }
+        .program-head .btn-primary { background:var(--yellow); color:var(--navy); border:1px solid var(--yellow); }
+        .program-head .btn-primary:hover { background:#ffd43b; }
+        .program-head .btn-secondary { background:#fff; color:#323338; border:1px solid #d8dce8; }
+        .program-head .btn-secondary:hover { background:#f5f7fb; }
+        .program-tools > .btn-secondary { background:#fff; border:1px solid #d8dce8; color:#323338; border-radius:8px; }
+        .program-summary { display:grid; grid-template-columns:repeat(5,minmax(140px,1fr)); gap:10px; margin:0 0 16px; }
+        .program-stat { background:#fff; border:1px solid var(--line); border-radius:8px; padding:11px 14px; box-shadow:0 2px 7px rgba(15,23,42,.05); }
+        .program-stat .lbl { font-size:10px; font-weight:800; color:#6b7280; text-transform:uppercase; letter-spacing:.06em; }
+        .program-stat .val { margin-top:3px; font-size:22px; line-height:1.1; font-weight:700; color:var(--navy); }
+        @media(max-width:800px){ .program-summary{grid-template-columns:repeat(2,minmax(130px,1fr));} }
+
+        .program-list { display:block; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); }
+        .program-tech { background:#fff; border:0; border-radius:0; box-shadow:none; overflow:visible; }
+        .program-tech + .program-tech { border-top:1px solid var(--line); }
+        .program-tech-head { display:none; }
+        .program-items { padding:0; display:block; }
+        .program-item {
+            display:grid; grid-template-columns:150px 150px 180px 110px 190px 180px minmax(230px,1fr) 72px 110px 72px;
+            gap:0; align-items:center; min-height:64px; padding:0 16px;
+            border:0; border-bottom:1px solid #edf0f5; border-radius:0; background:#fff;
+        }
+        .program-item:last-child { border-bottom:0; }
+        .program-item:hover { background:#f8faff; }
+        .program-time { font:600 13px 'Poppins',sans-serif; color:var(--navy); white-space:nowrap; padding-right:16px; overflow:hidden; text-overflow:ellipsis; }
+        .program-machine { font-weight:600; color:#323338; padding-right:16px; min-width:0; overflow-wrap:anywhere; }
+        .program-machine small, .program-service small { display:block; color:var(--muted); font-size:11px; margin-top:3px; font-weight:500; line-height:1.3; }
+        .program-service { font-weight:600; color:#323338; padding-right:16px; min-width:0; overflow-wrap:anywhere; }
+        .program-badge { display:inline-flex; align-items:center; justify-content:center; padding:4px 7px; border-radius:5px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; border:1px solid transparent; }
+        .program-p1 { background:#fff1f0; color:#b42318; border-color:#f1c8c4; }
+        .program-p2 { background:#fff8e1; color:#7a5a00; border-color:#ead69a; }
+        .program-p3 { background:#eef4fb; color:#315b86; border-color:#cedeed; }
+        .program-pendente { background:#f1f3f5; color:#5d6877; border-color:#dfe3e8; }
+        .program-andamento { background:#eaf3ff; color:#0060b9; border-color:#c8def5; }
+        .program-concluido { background:#edf7f1; color:#246746; border-color:#cde5d8; }
+        .program-reprogramado { background:#f3f0f7; color:#614c78; border-color:#ded5e7; }
+        .program-cancelado { background:#fff1f0; color:#b42318; border-color:#f1c8c4; }
+        .program-actions { display:flex; gap:4px; justify-content:flex-end; }
+        .program-actions .icon-btn { width:30px; height:30px; padding:5px; border-radius:6px; }
+        .program-empty { text-align:center; padding:54px 20px; color:var(--muted); background:#fff; border:0; border-radius:0; }
+        .program-empty h3 { color:#323338; margin:10px 0 4px; font-size:16px; }
+        .program-empty > div { font-size:0 !important; }
+        .program-empty > div::after { content:'Sem programação'; font-size:16px; font-weight:600; color:var(--muted); }
+        .program-image-board { width:1500px; max-width:none; background:#fff; padding:28px; color:#20242f; }
+        .program-image-board .program-tech { box-shadow:none; border:1px solid #dfe4ea; }
+        .program-table-header { color:#676879 !important; background:#f5f7fb !important; }
+        @media(max-width:1200px){ .program-item{grid-template-columns:145px 145px 165px 105px 175px 155px minmax(210px,1fr) 72px 105px 68px;} }
+        @media(max-width:900px){
+            .program-list { overflow-x:auto; }
+            .program-item, .program-table-header { min-width:1050px !important; }
+        }
+        @media(max-width:600px){ .program-wrap{padding:14px;} .program-head{margin:-14px -14px 16px;padding:16px 14px;} .program-tools .btn,.program-tools .program-date{width:100%;justify-content:center;} }
+
         /* Proteção: o Quadro Diário (exportado como imagem) mantém o layout original */
         #tab-quadro { overflow:visible; animation:none; }
         .daily-table th { white-space:normal; letter-spacing:.02em; font-size:.92em; }
@@ -1051,7 +1117,18 @@
             #tab-ativas .icon-btn svg, #tab-historico .icon-btn svg { width:24px; height:24px; }
             #tab-ativas .icon-btn:hover, #tab-historico .icon-btn:hover { background:#eaf3ff; border-color:var(--blue); transform:translateY(-2px); box-shadow:0 5px 12px rgba(0,115,234,.25); }
         }
-    </style>
+            @media print {
+            body.print-programacao { padding:0 !important; background:#fff !important; }
+            body.print-programacao > * { display:none !important; }
+            body.print-programacao .container { display:block !important; max-width:none !important; }
+            body.print-programacao .container > * { display:none !important; }
+            body.print-programacao #tab-programacao { display:block !important; border:0 !important; box-shadow:none !important; padding:0 !important; }
+            body.print-programacao #tab-programacao .program-head { display:block !important; }
+            body.print-programacao #tab-programacao .program-head .program-tools, body.print-programacao #tab-programacao > .program-tools, body.print-programacao #tab-programacao .program-summary { display:none !important; }
+            body.print-programacao #programacao-list { width:100% !important; }
+            body.print-programacao .program-actions { display:none !important; }
+        }
+</style>
 </head>
 <body>
     <div id="auth-screen" class="auth-screen">
@@ -1129,6 +1206,7 @@
             </button>
             <button class="tab" onclick="switchTab('estoque')"><span>📦 Estoque Total</span></button>
             <button class="tab" onclick="switchTab('quadro')"><span>🧾 Quadro Diário</span></button>
+            <button class="tab" onclick="switchTab('programacao')"><span>📅 Programação dos Técnicos</span></button>
         </div>
 
         <section id="tab-quadro" class="table-container" style="display:none;">
@@ -1153,6 +1231,32 @@
             </div>
             <p style="font-size:12px;color:#666;margin-top:12px" class="no-print">Este quadro usa os registros da aba Manutenções Ativas e as observações cadastradas em cada máquina.</p>
           </div>
+        </section>
+
+        <section id="tab-programacao" class="table-container program-wrap" style="display:none;">
+          <div class="program-head">
+            <div><h2>Programação dos Técnicos</h2><p>Planejamento diário de serviços, máquinas e equipes.</p></div>
+            <div class="program-tools" style="margin:0">
+              <input id="program-date" class="program-date" type="date" onchange="renderProgramacao()">
+              <button class="btn btn-primary" onclick="openProgramacaoModal()">➕ Programar serviço</button>
+              <button class="btn btn-secondary" onclick="exportProgramacaoImage('download')">📷 Baixar imagem</button>
+              <button class="btn btn-secondary" onclick="exportProgramacaoImage('copy')">📋 Copiar imagem</button>
+              <button class="btn btn-secondary" onclick="printProgramacao()">🖨️ Imprimir / PDF</button>
+            </div>
+          </div>
+          <div class="program-tools">
+            <button class="btn btn-secondary btn-small" onclick="setProgramDateOffset(-1)">← Ontem</button>
+            <button class="btn btn-secondary btn-small" onclick="setProgramDateOffset(0)">Hoje</button>
+            <button class="btn btn-secondary btn-small" onclick="setProgramDateOffset(1)">Amanhã →</button>
+          </div>
+          <div class="program-summary">
+            <div class="program-stat"><div class="lbl">Serviços</div><div class="val" id="prog-stat-total">0</div></div>
+            <div class="program-stat"><div class="lbl">Pendentes</div><div class="val" id="prog-stat-pendente">0</div></div>
+            <div class="program-stat"><div class="lbl">Em andamento</div><div class="val" id="prog-stat-andamento">0</div></div>
+            <div class="program-stat"><div class="lbl">Concluídos</div><div class="val" id="prog-stat-concluido">0</div></div>
+            <div class="program-stat"><div class="lbl">Reprogramados</div><div class="val" id="prog-stat-reprogramado">0</div></div>
+          </div>
+          <div id="programacao-list" class="program-list"></div>
         </section>
 
         <section id="tab-estoque" class="table-container stk-wrap" style="display:none;">
@@ -1254,6 +1358,26 @@
         </div>
     </div>
 
+    <!-- Modal Programação -->
+    <div id="program-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header"><h2 id="program-modal-title">Programar serviço</h2><button class="close-btn" onclick="closeProgramacaoModal()">&times;</button></div>
+        <form id="program-form" onsubmit="saveProgramacao(event)">
+          <input type="hidden" id="program-edit-id">
+          <div class="form-group"><label for="program-data">Data *</label><input id="program-data" type="date" required></div>
+          <div class="form-group"><label for="program-tecnico">Técnico *</label><input id="program-tecnico" list="program-tecnicos-list" required placeholder="Nome do técnico"><datalist id="program-tecnicos-list"></datalist></div>
+          <div class="form-group"><label for="program-maquina">Máquina *</label><input id="program-maquina" list="program-maquinas-list" required placeholder="Identificação da máquina"><datalist id="program-maquinas-list"></datalist></div>
+          <div class="form-group"><label for="program-servico">Serviço *</label><input id="program-servico" required placeholder="Ex.: Pintura" list="program-servicos-list" oninput="toggleClienteObraProgramacao()" onchange="toggleClienteObraProgramacao()"><datalist id="program-servicos-list"><option value="Pintura"><option value="Lavagem"><option value="Serviço externo"><option value="Manutenção preventiva"><option value="Manutenção corretiva"><option value="Diagnóstico"><option value="Inspeção geral"><option value="Revisão elétrica"><option value="Revisão hidráulica"><option value="Revisão mecânica"><option value="Teste operacional"></datalist></div>
+          <div class="form-group" id="program-cliente-obra-group" style="display:none;"><label for="program-cliente-obra">Cliente / Obra *</label><input id="program-cliente-obra" placeholder="Nome do cliente ou obra" oninput="toggleClienteObraProgramacao()"></div>
+          <div class="form-group"><label>Horário</label><div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center"><input id="program-horario-inicio" type="time" aria-label="Horário inicial"><span style="font-weight:700;color:var(--muted)">até</span><input id="program-horario-fim" type="time" aria-label="Horário final"></div></div>
+          <div class="form-group"><label for="program-prioridade">Prioridade</label><select id="program-prioridade"><option value="P1">P1 — Alta</option><option value="P2" selected>P2 — Normal</option><option value="P3">P3 — Baixa</option></select></div>
+          <div class="form-group"><label for="program-status">Status</label><select id="program-status"><option>Pendente</option><option>Em andamento</option><option>Concluído</option><option>Reprogramado</option><option>Cancelado</option></select></div>
+          <div class="form-group"><label for="program-observacoes">Observações</label><textarea id="program-observacoes" placeholder="Detalhes do serviço, peças, orientação etc."></textarea></div>
+          <div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeProgramacaoModal()">Cancelar</button><button type="submit" class="btn btn-primary">Salvar programação</button></div>
+        </form>
+      </div>
+    </div>
+
     <!-- Modal Adicionar/Editar -->
     <div id="modal" class="modal">
         <div class="modal-content">
@@ -1343,6 +1467,7 @@
         let currentTab = 'ativas';
         let currentFilter = 'todos';
         let stockRows = [];
+        let programacoes = [];
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', async function() {
@@ -1376,10 +1501,16 @@
             document.querySelector('.container').style.display = 'block';
             await loadData();
             await loadStock();
+            await loadProgramacoes();
             setTodayAsDefault();
+            setProgramDateToday();
             render();
             supabaseClient.channel('machines-live').on('postgres_changes', { event: '*', schema: 'public', table: 'machines' }, async () => {
                 await loadData(); render();
+            }).subscribe();
+            supabaseClient.channel('programacao-live').on('postgres_changes', { event: '*', schema: 'public', table: 'programacao_tecnicos' }, async () => {
+                await loadProgramacoes();
+                renderProgramacao();
             }).subscribe();
         }
 
@@ -2016,6 +2147,168 @@
             }
         }
 
+        // ===== Programação dos Técnicos =====
+        function programToday() { return new Date().toISOString().split('T')[0]; }
+        function setProgramDateToday() {
+            const el=document.getElementById('program-date'); if(el && !el.value) el.value=programToday();
+        }
+        function setProgramDateOffset(offset) {
+            const el=document.getElementById('program-date'); if(!el) return;
+            const base=el.value ? new Date(el.value+'T12:00:00') : new Date();
+            if(offset===0) base.setTime(new Date().setHours(12,0,0,0)); else base.setDate(base.getDate()+offset);
+            el.value=base.toISOString().slice(0,10); renderProgramacao();
+        }
+        function openProgramacaoModal(id='') {
+            if(!isAdmin) return alert('Acesso somente para visualização.');
+            const m=document.getElementById('program-modal'); if(!m) return;
+            document.getElementById('program-edit-id').value=id;
+            document.getElementById('program-modal-title').textContent=id?'Editar programação':'Programar serviço';
+            const p=id ? programacoes.find(x=>String(x.id)===String(id)) : null;
+            document.getElementById('program-form').reset();
+            document.getElementById('program-data').value=p?.data || document.getElementById('program-date').value || programToday();
+            document.getElementById('program-tecnico').value=p?.tecnico || '';
+            document.getElementById('program-maquina').value=p?.maquina || '';
+            document.getElementById('program-servico').value=p?.servico || '';
+            document.getElementById('program-cliente-obra').value=p?.cliente_obra || '';
+            document.getElementById('program-horario-inicio').value=p?.horario_inicio || p?.horario || '';
+            document.getElementById('program-horario-fim').value=p?.horario_fim || '';
+            document.getElementById('program-prioridade').value=p?.prioridade || 'P2';
+            document.getElementById('program-status').value=p?.status || 'Pendente';
+            document.getElementById('program-observacoes').value=p?.observacoes || '';
+            refreshProgramLists();
+            toggleClienteObraProgramacao();
+            m.classList.add('active');
+        }
+        function closeProgramacaoModal(){ const m=document.getElementById('program-modal'); if(m) m.classList.remove('active'); }
+        function refreshProgramLists(){
+            const techs=[...new Set(machines.map(m=>String(m.tecnico||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+            const dl=document.getElementById('program-tecnicos-list'); if(dl) dl.innerHTML=techs.map(x=>`<option value="${escapeHtml(x)}"></option>`).join('');
+            const vals=[];
+            machines.forEach(m=>{ if(m.np) vals.push({value:String(m.np),label:descreverNP(m.np)||''}); });
+            stockRows.forEach(r=>{ if(r.lote && !vals.some(v=>v.value===String(r.lote))) vals.push({value:String(r.lote),label:String(r.descricao||r.produto||'')}); });
+            const md=document.getElementById('program-maquinas-list'); if(md) md.innerHTML=vals.map(v=>`<option value="${escapeHtml(v.value)}">${escapeHtml(v.label)}</option>`).join('');
+        }
+        async function loadProgramacoes(){
+            const {data,error}=await supabaseClient.from('programacao_tecnicos').select('*').order('data').order('horario').order('tecnico');
+            if(error){ console.warn('Programação ainda não configurada no Supabase:',error.message); programacoes=[]; return; }
+            programacoes=(data||[]).map(r=>({id:r.id,data:r.data||'',tecnico:r.tecnico||'',maquina:r.maquina||'',servico:r.servico||'',cliente_obra:r.cliente_obra||'',horario:r.horario||'',horario_inicio:r.horario_inicio||r.horario||'',horario_fim:r.horario_fim||'',prioridade:r.prioridade||'P2',status:r.status||'Pendente',observacoes:r.observacoes||''}));
+        }
+        async function saveProgramacao(event){
+            event.preventDefault(); if(!isAdmin) return alert('Acesso somente para visualização.');
+            const id=document.getElementById('program-edit-id').value;
+            const inicio=document.getElementById('program-horario-inicio').value||null; const fim=document.getElementById('program-horario-fim').value||null;
+            const servico=document.getElementById('program-servico').value.trim();
+            const clienteObra=document.getElementById('program-cliente-obra').value.trim();
+            const isServicoExterno=servico.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')==='servico externo';
+            const row={data:document.getElementById('program-data').value,tecnico:document.getElementById('program-tecnico').value.trim(),maquina:document.getElementById('program-maquina').value.trim(),servico,cliente_obra:isServicoExterno?clienteObra:null,horario_inicio:inicio,horario_fim:fim,prioridade:document.getElementById('program-prioridade').value,status:document.getElementById('program-status').value,observacoes:document.getElementById('program-observacoes').value.trim()};
+            if(!row.data||!row.tecnico||!row.maquina||!row.servico) return alert('Preencha data, técnico, máquina e serviço.');
+            if(isServicoExterno && !clienteObra) return alert('Informe o nome do cliente/obra para o serviço externo.');
+            let q;
+            if(id) q=supabaseClient.from('programacao_tecnicos').update(row).eq('id',id); else q=supabaseClient.from('programacao_tecnicos').insert(row);
+            const {error}=await q;
+            if(error) return alert('Não foi possível salvar a programação: '+error.message+'\nSe a tabela ainda não foi criada, use o SQL que acompanha esta atualização.');
+            await loadProgramacoes(); document.getElementById('program-date').value=row.data; renderProgramacao(); closeProgramacaoModal();
+        }
+        async function deleteProgramacao(id){
+            if(!isAdmin) return alert('Acesso somente para visualização.');
+            if(!confirm('Excluir este serviço da programação?')) return;
+            const {error}=await supabaseClient.from('programacao_tecnicos').delete().eq('id',id);
+            if(error) return alert('Erro ao excluir: '+error.message);
+            await loadProgramacoes(); renderProgramacao();
+        }
+        async function updateProgramStatus(id,status){
+            if(!isAdmin) return alert('Acesso somente para visualização.');
+            const {error}=await supabaseClient.from('programacao_tecnicos').update({status}).eq('id',id);
+            if(error) return alert('Erro ao atualizar status: '+error.message);
+            await loadProgramacoes(); renderProgramacao();
+        }
+        function toggleClienteObraProgramacao(){
+            const servico=document.getElementById('program-servico')?.value?.trim() || '';
+            const externo=servico.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')==='servico externo';
+            const group=document.getElementById('program-cliente-obra-group');
+            const input=document.getElementById('program-cliente-obra');
+            if(!group||!input) return;
+            group.style.display=externo?'block':'none';
+            input.required=externo;
+            if(!externo) input.value='';
+        }
+        function programBadgeClass(v){ return 'program-'+String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-'); }
+        function programPriorityClass(v){ return v==='P1'?'program-p1':v==='P3'?'program-p3':'program-p2'; }
+        function formatProgramTime(v){
+            const s=String(v||'').trim();
+            if(!s) return '—';
+            const m=s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
+            return m ? m[1].padStart(2,'0')+':'+m[2] : s;
+        }
+        function getDiasManutencaoProgramacao(np){
+            const alvo=String(np||'').trim().toLowerCase();
+            if(!alvo) return null;
+            const m=machines.find(x=>x && x.status==='ativa' && String(x.np||'').trim().toLowerCase()===alvo);
+            if(!m || !m.dataEntrada) return null;
+            const hoje=new Date().toISOString().split('T')[0];
+            return Math.max(0, daysBetween(m.dataEntrada, hoje));
+        }
+        function getClienteObraProgramacao(p){
+            const externo=String(p.servico||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')==='servico externo';
+            return externo ? (p.cliente_obra || '—') : 'Filial';
+        }
+
+        function renderProgramacao(){
+            const list=document.getElementById('programacao-list'); if(!list) return;
+            const date=document.getElementById('program-date')?.value || programToday();
+            const rows=programacoes.filter(p=>p.data===date).sort((a,b)=>String(a.horario_inicio||a.horario||'99:99').localeCompare(String(b.horario_inicio||b.horario||'99:99'),'pt-BR')||a.tecnico.localeCompare(b.tecnico,'pt-BR'));
+            document.getElementById('prog-stat-total').textContent=rows.length;
+            document.getElementById('prog-stat-pendente').textContent=rows.filter(p=>p.status==='Pendente').length;
+            document.getElementById('prog-stat-andamento').textContent=rows.filter(p=>p.status==='Em andamento').length;
+            document.getElementById('prog-stat-concluido').textContent=rows.filter(p=>p.status==='Concluído').length;
+            const reprogramados=rows.filter(p=>p.status==='Reprogramado').length;
+            const reEl=document.getElementById('prog-stat-reprogramado'); if(reEl) reEl.textContent=reprogramados;
+            if(!rows.length){ list.innerHTML='<div class="program-empty"><div></div><h3>Sem programação para '+formatDate(date)+'</h3><p>Não há serviços programados para este dia.</p></div>'; return; }
+            const esc=v=>escapeHtml(v);
+            const header=`<div class="program-table-header" style="display:grid;grid-template-columns:150px 150px 180px 110px 190px 180px minmax(230px,1fr) 72px 110px 72px;gap:0;padding:10px 14px;background:var(--light);border-bottom:1px solid var(--line);color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;min-width:1450px"><div>Horário</div><div>Técnico</div><div>N.P. / Máquina</div><div>Dias em manutenção</div><div>Serviço</div><div>Cliente / Obra</div><div>Observações</div><div>Prioridade</div><div>Status</div><div></div></div>`;
+            const body=rows.map(p=>{
+              const dias=getDiasManutencaoProgramacao(p.maquina);
+              const clienteObra=getClienteObraProgramacao(p);
+              return `<div class="program-item">
+              <div class="program-time">${esc(p.horario_inicio ? (p.horario_fim ? formatProgramTime(p.horario_inicio)+' às '+formatProgramTime(p.horario_fim) : formatProgramTime(p.horario_inicio)) : formatProgramTime(p.horario))}</div>
+              <div class="program-machine">${esc(p.tecnico)}</div>
+              <div class="program-machine">${esc(p.maquina)}</div>
+              <div class="program-machine">${dias===null?'<span style="color:#98a2b3;font-weight:500">—</span>':`<strong>${dias}</strong> dia${dias===1?'':'s'}`}</div>
+              <div class="program-service">${esc(p.servico)}</div>
+              <div class="program-service">${esc(clienteObra)}</div>
+              <div class="program-service">${p.observacoes?esc(p.observacoes):'<span style="color:#98a2b3;font-weight:500">—</span>'}</div>
+              <div><span class="program-badge ${programPriorityClass(p.prioridade)}">${esc(p.prioridade)}</span></div>
+              <div><span class="program-badge ${programBadgeClass(p.status)}">${esc(p.status)}</span></div>
+              <div class="program-actions">${isAdmin?`<button class="icon-btn" onclick="openProgramacaoModal('${String(p.id).replace(/'/g,"\'")}')" title="Editar">✏️</button><button class="icon-btn" onclick="deleteProgramacao('${String(p.id).replace(/'/g,"\'")}')" title="Excluir">🗑️</button>`:''}</div>
+            </div>`;
+            }).join('');
+            list.innerHTML=header+body;
+        }
+        async function exportProgramacaoImage(mode='download'){
+            renderProgramacao(); const date=document.getElementById('program-date')?.value||programToday();
+            const rows=programacoes.filter(p=>p.data===date); if(!rows.length) return alert('Não há serviços programados para este dia.');
+            const source=document.getElementById('programacao-list');
+            const W=1500;
+            try{
+              const canvas=await html2canvas(source,{scale:1.5,backgroundColor:'#ffffff',windowWidth:W+100,onclone:(doc)=>{
+                const el=doc.getElementById('programacao-list'); el.style.width=W+'px'; el.style.maxWidth='none'; el.style.padding='0';
+                const title=doc.createElement('div'); title.style.cssText='background:#fff;padding:0 0 22px;text-align:left;font-family:Poppins,Figtree,sans-serif';
+                title.innerHTML='<div style="font-size:30px;font-weight:800;color:#1b2a4a">📅 PROGRAMAÇÃO DOS TÉCNICOS</div><div style="font-size:16px;font-weight:600;color:#676879;margin-top:4px">Serviços programados para '+formatDate(date)+' — Unidade São Paulo</div>';
+                el.insertBefore(title,el.firstChild);
+                doc.querySelectorAll('#programacao-list .program-tech').forEach(e=>{e.style.boxShadow='none';e.style.breakInside='avoid';});
+                doc.querySelectorAll('#programacao-list .program-actions').forEach(e=>e.style.display='none');
+              }});
+              const blob=await new Promise(r=>canvas.toBlob(r,'image/png')); const name='programacao-tecnicos-'+date+'.png';
+              if(mode==='copy'){try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);alert('Imagem copiada! Cole (Ctrl+V) no WhatsApp.');return;}catch(e){}}
+              const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+            }catch(err){console.error(err);alert('Não foi possível gerar a imagem: '+err.message);}
+        }
+        function printProgramacao(){
+            const date=document.getElementById('program-date')?.value||programToday();
+            if(!programacoes.some(p=>p.data===date)) return alert('Não há serviços programados para este dia.');
+            const old=document.title; document.title='Programação dos Técnicos - '+formatDate(date); document.body.classList.add('print-programacao'); window.print(); setTimeout(()=>{document.body.classList.remove('print-programacao');document.title=old;},500);
+        }
+
         // Tabs
         function switchTab(tab) {
             currentTab = tab;
@@ -2023,7 +2316,7 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.tab').classList.add('active');
             
-            ['ativas','historico','estoque','quadro'].forEach(id => {
+            ['ativas','historico','estoque','quadro','programacao'].forEach(id => {
                 const el=document.getElementById('tab-'+id); if(el) el.style.display=(tab===id?'block':'none');
             });
             // Os filtros de manutenção ficam ocultos na aba de estoque.
@@ -2031,6 +2324,7 @@
             if(maintenanceControls) maintenanceControls.style.display=(tab==='ativas' || tab==='historico'?'block':'none');
             if(tab==='estoque') renderStock();
             if(tab==='quadro') renderDailyBoard();
+            if(tab==='programacao') renderProgramacao();
         }
 
 
