@@ -1860,8 +1860,8 @@
                 if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
                     alert('Selecione somente arquivos PDF.'); return;
                 }
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('O arquivo "' + file.name + '" ultrapassa o limite de 10 MB.'); return;
+                if (file.size > 50 * 1024 * 1024) {
+                    alert('O arquivo "' + file.name + '" ultrapassa o limite de 50 MB.'); return;
                 }
             }
 
