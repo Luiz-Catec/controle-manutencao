@@ -871,7 +871,7 @@
         .program-stat .val { margin-top:3px; font-size:22px; line-height:1.1; font-weight:700; color:var(--navy); }
         @media(max-width:800px){ .program-summary{grid-template-columns:repeat(2,minmax(130px,1fr));} }
 
-        .program-list { display:block; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); }
+        .program-list { display:block; background:#fff; border:1px solid var(--line); border-radius:10px; overflow-x:auto; overflow-y:hidden; box-shadow:var(--shadow); }
         .program-tech { background:#fff; border:0; border-radius:0; box-shadow:none; overflow:visible; }
         .program-tech + .program-tech { border-top:1px solid var(--line); }
         .program-tech-head { display:none; }
@@ -896,7 +896,9 @@
         .program-concluido { background:#edf7f1; color:#246746; border-color:#cde5d8; }
         .program-reprogramado { background:#f3f0f7; color:#614c78; border-color:#ded5e7; }
         .program-cancelado { background:#fff1f0; color:#b42318; border-color:#f1c8c4; }
-        .program-actions { display:flex; gap:4px; justify-content:flex-end; }
+        .program-actions { display:flex; gap:4px; justify-content:flex-end; position:sticky; right:0; z-index:4; background:#fff; box-shadow:-5px 0 10px rgba(15,23,42,.08); padding-left:6px; min-width:72px; box-sizing:border-box; }
+        .program-table-header > div:last-child { position:sticky; right:0; z-index:5; background:#f5f7fb !important; box-shadow:-5px 0 10px rgba(15,23,42,.08); min-width:72px; box-sizing:border-box; padding-left:6px; }
+        .program-table-header > div:nth-last-child(2) { padding-right:10px; }
         .program-actions .icon-btn { width:30px; height:30px; padding:5px; border-radius:6px; }
         .program-empty { text-align:center; padding:54px 20px; color:var(--muted); background:#fff; border:0; border-radius:0; }
         .program-empty h3 { color:#323338; margin:10px 0 4px; font-size:16px; }
@@ -2276,7 +2278,7 @@
             const reEl=document.getElementById('prog-stat-reprogramado'); if(reEl) reEl.textContent=reprogramados;
             if(!rows.length){ list.innerHTML='<div class="program-empty"><div></div><h3>Sem programação para '+formatDate(date)+'</h3><p>Não há serviços programados para este dia.</p></div>'; return; }
             const esc=v=>escapeHtml(v);
-            const header=`<div class="program-table-header" style="display:grid;grid-template-columns:150px 150px 180px 110px 190px 180px minmax(230px,1fr) 72px 110px 72px;gap:0;padding:10px 14px;background:var(--light);border-bottom:1px solid var(--line);color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;min-width:1450px"><div>Horário</div><div>Técnico</div><div>N.P. / Máquina</div><div>Dias em manutenção</div><div>Serviço</div><div>Cliente / Obra</div><div>Observações</div><div>Prioridade</div><div>Status</div><div></div></div>`;
+            const header=`<div class="program-table-header" style="display:grid;grid-template-columns:150px 150px 180px 110px 190px 180px minmax(230px,1fr) 72px 110px 72px;gap:0;padding:10px 14px;background:var(--light);border-bottom:1px solid var(--line);color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;min-width:1450px"><div>Horário</div><div>Técnico</div><div>N.P. / Máquina</div><div>Dias em manutenção</div><div>Serviço</div><div>Cliente / Obra</div><div>Observações</div><div>Prioridade</div><div>Status</div><div style="position:sticky;right:0;background:var(--light);z-index:3;text-align:center;box-shadow:-5px 0 10px rgba(15,23,42,.06)">Ações</div></div>`;
             const body=rows.map(p=>{
               const dias=getDiasManutencaoProgramacao(p.maquina);
               const clienteObra=getClienteObraProgramacao(p);
