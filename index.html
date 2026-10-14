@@ -2589,10 +2589,26 @@
         }
 
 
+        // Uma máquina = um N.P. (lote). Se houver mais de uma linha, vence a mais "avançada":
+        // remessa/locação ganha de DISPONÍVEL.
+        function dedupeStockPorNP(lista){
+          const norm=v=>String(v??'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+          const score=r=>(norm(r.status).includes('DISPONIVEL')?0:4)+((Number(r.locado)||0)>0?2:0)+(String(r.contrato||'').trim()?1:0);
+          const mapa=new Map();
+          for(const r of lista){
+            const k=norm(String(r.lote||'').trim());
+            if(!k) continue;
+            const atual=mapa.get(k);
+            if(!atual || score(r)>=score(atual)) mapa.set(k,r);
+          }
+          // mantém a mesma ordem de antes: Cliente, depois Contrato, depois N.P.
+          const cmp=(x,y)=>String(x||'').localeCompare(String(y||''),'pt-BR',{numeric:true,sensitivity:'base'});
+          return [...mapa.values()].sort((a,b)=>cmp(a.cliente,b.cliente)||cmp(a.contrato,b.contrato)||cmp(a.lote,b.lote));
+        }
         async function loadStock(){
           const {data,error}=await supabaseClient.from('estoque_protheus').select('*').order('cliente').order('contrato');
           if(error){console.warn('Estoque ainda não configurado:',error.message); document.getElementById('stock-info').textContent='Configure a tabela de estoque no Supabase para carregar os dados.'; stockRows=[]; renderStock(); return;}
-          stockRows=(data||[]).filter(r=>String(r.lote??'').trim()!=='').map(r=>({produto:r.produto,descricao:r.descricao,lote:r.lote,status:r.status,locado:Number(r.locado)||0,total:Number(r.total)||0,contrato:r.contrato,cliente:r.cliente}));
+          stockRows=dedupeStockPorNP((data||[]).filter(r=>String(r.lote??'').trim()!=='').map(r=>({produto:r.produto,descricao:r.descricao,lote:r.lote,status:r.status,locado:Number(r.locado)||0,total:Number(r.total)||0,contrato:r.contrato,cliente:r.cliente})));
           document.getElementById('stock-info').textContent=stockRows.length?`Estoque salvo no Supabase: ${stockRows.length} registros da família PLATAFORMA.`:'Nenhum estoque importado ainda.';
           renderStock();
           renderDailyBoard();
@@ -2608,13 +2624,24 @@
             if(hi<0) throw new Error('Não encontrei os cabeçalhos Descricao da Familia e Status Bem.');
             const headers=raw[hi].map(norm), ix=k=>headers.indexOf(norm(k));
             const family=ix('Descricao da Familia'), prod=ix('Cod. Produto'), desc=ix('Descricao Produto'), lote=ix('Lote'), status=ix('Status Bem'), loc=ix('Locado'), total=ix('Total'), contrato=ix('Contrato'), cliente=ix('Cliente'), filial=ix('Cod. Filial');
-            const rows=raw.slice(hi+1).filter(r=>norm(r[family])==='PLATAFORMA').map(r=>{
+            const rowsBrutas=raw.slice(hi+1).filter(r=>norm(r[family])==='PLATAFORMA').map(r=>{
               const c=String(r[contrato]??'').trim(), cl=String(r[cliente]??'').trim(), pr=String(r[prod]??'').trim(), lo=String(r[lote]??'').trim(), fi=String(r[filial]??'').trim();
               return {row_key:[fi,c,pr,lo].join('|'),contrato:c,cliente:cl,produto:pr,descricao:String(r[desc]??''),lote:lo,status:String(r[status]??''),locado:Number(r[loc])||0,total:Number(r[total])||0,familia:'PLATAFORMA'};
             }).filter(r=>r.lote.trim()!=='');
+            const rows=dedupeStockPorNP(rowsBrutas);
             if(!rows.length) throw new Error('Nenhuma linha da família PLATAFORMA encontrada.');
             document.getElementById('stock-info').textContent='Salvando '+rows.length+' registros no Supabase...';
             for(let i=0;i<rows.length;i+=300){const {error}=await supabaseClient.from('estoque_protheus').upsert(rows.slice(i,i+300),{onConflict:'row_key'});if(error)throw error;}
+            // remove do Supabase as linhas que não fazem mais parte do estoque (duplicadas/antigas)
+            const {data:existentes,error:errEx}=await supabaseClient.from('estoque_protheus').select('row_key');
+            if(!errEx){
+              const manter=new Set(rows.map(r=>r.row_key));
+              const apagar=(existentes||[]).map(x=>x.row_key).filter(k=>!manter.has(k));
+              for(let i=0;i<apagar.length;i+=100){
+                const {error}=await supabaseClient.from('estoque_protheus').delete().in('row_key',apagar.slice(i,i+100));
+                if(error){ console.warn('Não consegui limpar linhas antigas:',error.message); break; }
+              }
+            }
             await loadStock(); alert('Estoque salvo no Supabase! '+rows.length+' registros importados.');
           } catch(err) { alert('Erro ao importar/salvar: '+err.message+'\nConfira se a tabela e as permissões do Supabase foram configuradas.'); }
           event.target.value='';
