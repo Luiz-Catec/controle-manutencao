@@ -684,6 +684,7 @@
         .daily-maintenance-table td.daily-date { white-space:nowrap; text-align:center; font-weight:700; color:#1b2a4a; }
         .daily-maintenance-table td { vertical-align:top; }
         .daily-maintenance-table thead th { background:#eef1f7; border-bottom:2px solid #1b2a4a; }
+        .stats-grid .stat-card { cursor:pointer; }
         .cor-seletor { height:0; overflow:hidden; opacity:0; transition:opacity .15s; }
         .cor-cell:hover .cor-seletor { height:auto; opacity:1; margin-top:4px; }
         .cor-seletor select { font-size:11px; padding:2px 4px; border:1px solid rgba(0,0,0,.15); border-radius:5px; background:rgba(255,255,255,.7); color:#333; }
@@ -1134,9 +1135,164 @@
             body.print-programacao #programacao-list { width:100% !important; }
             body.print-programacao .program-actions { display:none !important; }
         }
+
+        /* =====================================================
+           REDESIGN v3 — menu lateral, visual limpo e consistente
+           (fica por último de propósito: sobrescreve as camadas anteriores)
+           ===================================================== */
+        :root {
+            --navy:#0f1b33; --navy2:#1d3a78; --blue:#0073ea; --yellow:#ffc400;
+            --ink:#101828; --muted:#667085; --line:#e4e8f1; --bg:#f3f5fa;
+            --shadow:0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.06);
+            --shadow-lg:0 12px 32px rgba(16,24,40,.16);
+            --radius:14px;
+        }
+        body { background:var(--bg); color:var(--ink); }
+
+        /* Cabeçalho da página */
+        header { background:#fff; color:var(--ink); border:1px solid var(--line); box-shadow:var(--shadow);
+                 border-radius:var(--radius); padding:16px 22px; margin-bottom:18px; }
+        header::after { display:none; }
+        h1 { color:var(--navy); text-shadow:none; font-size:22px; font-weight:700; }
+        h1 img { box-shadow:none; border:1px solid var(--line); padding:3px; }
+
+        /* Botões */
+        .btn { border-radius:10px; box-shadow:none; }
+        .btn-primary { background:var(--blue); color:#fff; box-shadow:0 2px 6px rgba(0,115,234,.28); }
+        .btn-primary:hover { background:#0060c4; box-shadow:0 4px 10px rgba(0,115,234,.35); }
+        header .btn-secondary { background:#fff; color:var(--navy); border:1px solid #d5dbe8; }
+        header .btn-secondary:hover { background:#f3f6fc; }
+        .btn-danger { background:#e5484d; box-shadow:none; }
+
+        /* Cartões de resumo */
+        .stats-grid { gap:14px; margin-bottom:18px; }
+        .stats-grid .stat-card { background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+            box-shadow:var(--shadow); padding:16px 18px 14px 22px; --accent:#0073ea; }
+        .stats-grid .stat-card::before { content:''; position:absolute; left:0; top:14px; bottom:14px; width:4px;
+            border-radius:0 4px 4px 0; background:var(--accent); }
+        .stats-grid .stat-card.total { --accent:#0073ea; }
+        .stats-grid .stat-card.atrasadas { --accent:#e5484d; background:#fff; }
+        .stats-grid .stat-card.vence-breve { --accent:#f5b800; background:#fff; }
+        .stats-grid .stat-card.liberadas { --accent:#2fa75a; background:#fff; }
+        .stats-grid .stat-card.historico { --accent:#8f4fd6; }
+        .stats-grid .stat-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+        .stat-label { color:var(--muted); font-size:11.5px; }
+        .stat-value { font-size:34px; }
+        body[data-tab="estoque"] .stats-grid,
+        body[data-tab="quadro"] .stats-grid,
+        body[data-tab="programacao"] .stats-grid { display:none; }
+
+        /* Abas (tablet/celular: barra horizontal) */
+        .tabs { border-radius:12px; box-shadow:var(--shadow); }
+        .tab.active { background:var(--navy); color:#fff; box-shadow:none; }
+
+        /* Filtros */
+        .controls { border-radius:var(--radius); box-shadow:var(--shadow); }
+        .filter-chip { border:1px solid #d9deea; font-weight:600; }
+        .filter-chip.active { background:var(--navy); color:#fff; border-color:var(--navy); box-shadow:none; }
+
+        /* Tabelas */
+        .table-container { border-radius:var(--radius); box-shadow:var(--shadow); }
+        thead { background:#f8fafd; border-bottom:1px solid var(--line); }
+        th { color:#667085; font-size:11.5px; letter-spacing:.06em; }
+        td { border-bottom:1px solid #eef1f7; }
+        tbody tr:nth-child(even) { background:#fff; }
+        tbody tr:hover { background:#f6f9ff; }
+        tbody tr.atrasado, tbody tr.atrasado:nth-child(even) { background:#fff6f6; border-left:0; }
+        tbody tr.vence-breve, tbody tr.vence-breve:nth-child(even) { background:#fffbea; border-left:0; }
+        tbody tr.liberado, tbody tr.liberado:nth-child(even) { background:#f3fbf6; border-left:0; }
+        tbody tr.liberado-aguardando, tbody tr.liberado-aguardando:nth-child(even) { background:#f1fafa; border-left:0; }
+        .np-cell { color:var(--navy); }
+
+        /* Etiquetas de situação (cores suaves, iguais às do Quadro) */
+        .badge { box-shadow:none; }
+        .badge-atrasado { background:#fde4e4; color:#b42318; }
+        .badge-vence-breve { background:#fff1bf; color:#7a5b00; }
+        .badge-no-prazo { background:#dff5e7; color:#1b6a37; }
+        .badge-liberado { background:#c9edd8; color:#14532d; }
+        .badge-aguardando { background:#d6f2f0; color:#0b5f5a; }
+
+        /* Janelas */
+        .modal-content { border-top:4px solid var(--blue); border-radius:18px; }
+        .modal-header h2 { color:var(--navy); }
+
+        /* Estoque */
+        #tab-estoque.stk-wrap { background:transparent; border:0; box-shadow:none; padding:0; }
+        .stk-head { background:#fff; color:var(--ink); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:var(--radius); }
+        .stk-head h2 { color:var(--navy); }
+        .stk-head p { color:var(--muted); }
+        .stk-head .btn { background:var(--blue); color:#fff; box-shadow:0 2px 6px rgba(0,115,234,.28); }
+        .stk-head .btn:hover { background:#0060c4; }
+        .stk-card { box-shadow:var(--shadow); }
+        .stk-table thead, .stk-table thead th { background:#f8fafd; color:#667085; }
+        .stk-table thead th { border:0; border-bottom:1px solid var(--line); }
+        .table-container.stk-table-box { background:#fff; border:1px solid var(--line); }
+
+        /* Programação dos técnicos */
+        #tab-programacao { background:transparent; border:0; box-shadow:none; padding:0; overflow:visible; }
+        #tab-programacao .program-head { margin:0 0 16px; background:#fff; color:var(--ink); border:1px solid var(--line);
+            border-radius:var(--radius); box-shadow:var(--shadow); }
+        #tab-programacao .program-head h2 { color:var(--navy); }
+        #tab-programacao .program-head p { color:var(--muted); }
+        #tab-programacao .program-head .btn-primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+        #tab-programacao .program-head .btn-primary:hover { background:#0060c4; }
+        .program-stat { border-radius:var(--radius); box-shadow:var(--shadow); }
+        .program-list { border-radius:var(--radius); }
+
+        /* Quadro diário (o cartão branco é o próprio quadro) */
+        #tab-quadro { background:transparent; border:0; box-shadow:none; }
+        .daily-board { border-radius:var(--radius); border:1px solid var(--line); box-shadow:var(--shadow); }
+
+        /* Aviso (toast) no lugar das janelinhas alert() */
+        #toast-host { position:fixed; right:20px; bottom:20px; z-index:3000; display:flex; flex-direction:column; gap:10px;
+            max-width:min(420px, calc(100vw - 32px)); }
+        .toast { background:var(--navy); color:#fff; padding:12px 16px; border-radius:12px; box-shadow:var(--shadow-lg);
+            font-size:14px; line-height:1.45; white-space:pre-line; border-left:4px solid var(--blue); animation:fadeUp .25s ease both; }
+        .toast.erro { border-left-color:#e5484d; }
+
+        /* ---------- Tela larga: menu lateral fixo ---------- */
+        @media screen and (min-width: 1025px) {
+            body { padding:0; }
+            .container { max-width:none; margin:0; padding:22px 30px 48px 270px; }
+            .tabs { position:fixed; left:0; top:0; bottom:0; width:240px; z-index:50; flex-direction:column; gap:4px;
+                margin:0; padding:84px 12px 130px; background:var(--navy); border:0; border-radius:0; box-shadow:none;
+                overflow-x:hidden; overflow-y:auto; animation:none; }
+            .tabs::before { content:'CONTROLE DE MÁQUINAS'; position:absolute; top:26px; left:22px; right:16px;
+                color:#fff; font:700 12.5px 'Poppins',sans-serif; letter-spacing:.13em; }
+            .tabs::after { content:''; position:absolute; top:54px; left:22px; width:34px; height:3px; border-radius:3px; background:var(--yellow); }
+            .tab { flex:0 0 auto; text-align:left; color:#b8c4de; background:transparent; border-radius:10px;
+                padding:12px 14px; font-size:14px; box-shadow:none; }
+            .tab:hover { background:rgba(255,255,255,.08); color:#fff; }
+            .tab.active { background:var(--blue); color:#fff; box-shadow:0 4px 12px rgba(0,115,234,.35); }
+
+            #session-bar { position:fixed; left:12px; bottom:12px; width:216px; z-index:60; margin:0; flex-direction:column;
+                align-items:stretch; gap:8px; padding:12px; border-radius:12px; background:rgba(255,255,255,.07);
+                border:1px solid rgba(255,255,255,.12); box-shadow:none; color:#c9d3ea; font-size:12px; }
+            #session-info { white-space:normal; word-break:break-all; line-height:1.35; }
+            #session-bar button { background:rgba(255,255,255,.12); color:#fff; border:0; border-radius:8px; padding:8px; }
+            #session-bar button:hover { background:#e5484d; color:#fff; }
+
+            /* busca e filtros na mesma linha */
+            .controls { display:flex; gap:16px; align-items:center; flex-wrap:wrap; padding:14px 18px; }
+            .search-bar { margin:0; flex:1 1 320px; }
+            .filter-chips { flex:0 1 auto; }
+        }
+
+        /* Linhas da tabela: marca lateral colorida (só no computador/tablet) */
+        @media screen and (min-width: 769px) {
+            tbody tr.atrasado td:first-child { box-shadow:inset 4px 0 0 #e5484d; }
+            tbody tr.vence-breve td:first-child { box-shadow:inset 4px 0 0 #f5b800; }
+            tbody tr.liberado td:first-child { box-shadow:inset 4px 0 0 #2fa75a; }
+            tbody tr.liberado-aguardando td:first-child { box-shadow:inset 4px 0 0 #4eccc6; }
+        }
+
+        @media print {
+            .container { padding:0 !important; }
+            #toast-host { display:none !important; }
+        }
 </style>
 </head>
-<body>
+<body data-tab="ativas">
     <div id="auth-screen" class="auth-screen">
       <div class="auth-brand"><div class="logo">🏗️</div><h2>Sistema de Controle de Máquinas</h2><p>Entre com seu e-mail e senha para acessar o controle de manutenção.</p></div>
       <form id="login-form">
@@ -1175,27 +1331,27 @@
 
         <!-- Cards de Resumo -->
         <div class="stats-grid">
-            <div class="stat-card total">
+            <div class="stat-card total" onclick="irParaFiltro('todos')" title="Clique para filtrar">
                 <div class="ico">🔧</div>
                 <div class="stat-label">Em Manutenção</div>
                 <div class="stat-value" id="stat-total">0</div>
             </div>
-            <div class="stat-card atrasadas">
+            <div class="stat-card atrasadas" onclick="irParaFiltro('atrasados')" title="Clique para filtrar">
                 <div class="ico">⏰</div>
                 <div class="stat-label">Atrasadas</div>
                 <div class="stat-value" id="stat-atrasadas">0</div>
             </div>
-            <div class="stat-card vence-breve">
+            <div class="stat-card vence-breve" onclick="irParaFiltro('vence-breve')" title="Clique para filtrar">
                 <div class="ico">⚠️</div>
                 <div class="stat-label">Vencem em Breve</div>
                 <div class="stat-value" id="stat-vence-breve">0</div>
             </div>
-            <div class="stat-card liberadas">
+            <div class="stat-card liberadas" onclick="irParaFiltro('liberados')" title="Clique para filtrar">
                 <div class="ico">✅</div>
                 <div class="stat-label">Liberadas</div>
                 <div class="stat-value" id="stat-liberadas">0</div>
             </div>
-            <div class="stat-card historico">
+            <div class="stat-card historico" onclick="irParaFiltro('historico')" title="Clique para filtrar">
                 <div class="ico">📚</div>
                 <div class="stat-label">Histórico</div>
                 <div class="stat-value" id="stat-historico">0</div>
@@ -1479,6 +1635,12 @@
         let isAdmin = false;
         let knownIds = [];
 
+        // Data local no formato AAAA-MM-DD (toISOString usa UTC e errava o dia à noite)
+        function hojeLocal(d = new Date()) {
+            const z = n => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+        }
+
         // Estado da aplicação
         let machines = [];
         let currentTab = 'ativas';
@@ -1542,13 +1704,13 @@
         async function logout() { await supabaseClient.auth.signOut(); showLogin(); }
 
         function setTodayAsDefault() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = hojeLocal();
             document.getElementById('dataEntrada').value = today;
             
             // Data prevista: 7 dias a partir de hoje
             const nextWeek = new Date();
             nextWeek.setDate(nextWeek.getDate() + 7);
-            document.getElementById('dataPrevista').value = nextWeek.toISOString().split('T')[0];
+            document.getElementById('dataPrevista').value = hojeLocal(nextWeek);
         }
 
         // Carregar dados compartilhados do Supabase
@@ -1602,7 +1764,7 @@
         function getMachineStatus(machine) {
             if (machine.status === 'historico') return 'historico';
             
-            const today = new Date().toISOString().split('T')[0];
+            const today = hojeLocal();
             const diasPrazo = daysBetween(today, machine.dataPrevista);
             
             if (machine.situacao === 'Liberado') return 'liberado';
@@ -1655,7 +1817,7 @@
 
         function corAutomaticaQuadro(m) {
             if (String(m.situacao || '').startsWith('Liberado')) return 'verde';
-            const dias = daysBetween(m.dataEntrada, new Date().toISOString().split('T')[0]);
+            const dias = daysBetween(m.dataEntrada, hojeLocal());
             return dias > 15 ? 'vermelho' : 'amarelo';
         }
 
@@ -1713,27 +1875,41 @@
             const sum = k => groupsList.reduce((a,g)=>a+g[k],0);
             effect.innerHTML = (groupsList.length ? `<div style="overflow-x:auto"><table class="daily-table" style="font-size:12px;margin-bottom:18px"><thead><tr><th>DESCRIÇÃO</th><th style="background:#ffff00">QTD.TOTAL</th><th style="background:#dcebf8">QTD.LOCAÇÃO</th><th style="background:#80c34b">DISPONÍVEL</th><th style="background:#f00;color:#fff">MANUTENÇÃO</th><th>RESERVADO</th><th>EM TRANSFERÊNCIA</th><th>EFETIVIDADE (%)</th></tr></thead><tbody>${groupsList.map(g=>`<tr><td>${escapeDaily(g.desc)}</td><td style="background:#ffff00;text-align:center">${g.total}</td><td style="background:#dcebf8;text-align:center">${g.locacao}</td><td style="background:#80c34b;text-align:center">${g.disponivel}</td><td style="background:#f00;color:#fff;text-align:center">${g.manutencao}</td><td style="text-align:center">${g.reservado}</td><td style="text-align:center">${g.transferencia}</td><td style="text-align:center">${fmtPct(g)}</td></tr>`).join('')}</tbody><tfoot><tr><th>Total Geral</th><th>${total}</th><th>${sum('locacao')}</th><th>${sum('disponivel')}</th><th>${sum('manutencao')}</th><th>${sum('reservado')}</th><th>${sum('transferencia')}</th><th>${(total?sum('locacao')/total*100:0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}%</th></tr></tfoot></table></div>` : `<div class="daily-empty" style="margin-bottom:18px">Importe o estoque do Protheus na aba Estoque Total para exibir a efetividade.</div>`);
 
-            const legenda = `<table class="daily-table" style="font-size:11px;margin-bottom:12px"><thead><tr><th colspan="2" style="text-align:center">LEGENDA</th></tr></thead><tbody>
-                <tr><td style="width:60px;background:#fde4e4 !important;border-left:5px solid #e5484d"></td><td>MANUTENÇÃO PESADA - ACIMA DE 15 DIAS PARA LIBERAÇÃO</td></tr>
-                <tr><td style="background:#fff6d6 !important;border-left:5px solid #f5b800"></td><td>MANUTENÇÃO LEVE - MENOS DE 10 DIAS PARA LIBERAÇÃO</td></tr>
-                <tr><td style="background:#e0f4e6 !important;border-left:5px solid #2fa75a"></td><td>LIBERADAS</td></tr></tbody></table>`;
+            const hoje = hojeLocal();
+            const ordemCor = { vermelho:0, amarelo:1, verde:2 };
+            const ativos = machines.filter(m => m.status === 'ativa').map(m => ({
+                m, chave: m.corQuadro || corAutomaticaQuadro(m),
+                dias: Math.max(0, daysBetween(m.dataEntrada, hoje))
+            }));
+            const cont = { vermelho:0, amarelo:0, verde:0 };
+            ativos.forEach(x => cont[x.chave]++);
 
-            const ativos = machines.filter(m => m.status === 'ativa');
+            const linhaLeg = (k, txt) => `<tr><td style="width:60px;background:${COR_QUADRO[k].bg} !important;border-left:5px solid ${COR_QUADRO[k].bar}"></td><td>${txt}</td><td style="width:44px;text-align:center;font-weight:800">${cont[k]}</td></tr>`;
+            const legenda = `<table class="daily-table" style="font-size:11px;margin-bottom:12px"><thead><tr><th colspan="3" style="text-align:center">LEGENDA</th></tr></thead><tbody>
+                ${linhaLeg('vermelho','MANUTENÇÃO PESADA - ACIMA DE 15 DIAS PARA LIBERAÇÃO')}
+                ${linhaLeg('amarelo','MANUTENÇÃO LEVE - MENOS DE 10 DIAS PARA LIBERAÇÃO')}
+                ${linhaLeg('verde','LIBERADAS')}</tbody></table>`;
+
             if (!ativos.length) {
                 content.innerHTML = legenda + '<div class="daily-empty">Nenhuma máquina em manutenção no momento.</div>';
                 return;
             }
-            const sorted = [...ativos].sort((a,b) => String(a.np).localeCompare(String(b.np), 'pt-BR', {numeric:true}));
-            content.innerHTML = legenda + `<table class="daily-table daily-maintenance-table"><thead><tr><th>EQUIPAMENTO / N.P.</th><th>DATA PREVISTA</th><th>OBSERVAÇÕES / SERVIÇO NECESSÁRIO</th></tr></thead><tbody>${sorted.map(m => {
-                const chave = m.corQuadro || corAutomaticaQuadro(m);
+            // Mais urgentes primeiro: vermelho, amarelo, verde; dentro da cor, quem está há mais dias
+            ativos.sort((a,b) => ordemCor[a.chave] - ordemCor[b.chave] || b.dias - a.dias || String(a.m.np).localeCompare(String(b.m.np), 'pt-BR', {numeric:true}));
+
+            const linhas = ativos.map(({m, chave, dias}) => {
                 const c = COR_QUADRO[chave];
+                const atrasada = chave !== 'verde' && m.dataPrevista && m.dataPrevista < hoje;
                 const seletor = isAdmin ? `<div class="no-print cor-seletor"><select onchange="setCorQuadro(${m.id}, this.value)" title="Cor no quadro">
                     <option value="" ${!m.corQuadro?'selected':''}>Automática</option>
                     <option value="vermelho" ${m.corQuadro==='vermelho'?'selected':''}>🔴 Pesada</option>
                     <option value="amarelo" ${m.corQuadro==='amarelo'?'selected':''}>🟡 Leve</option>
                     <option value="verde" ${m.corQuadro==='verde'?'selected':''}>🟢 Liberada</option></select></div>` : '';
-                return `<tr><td class="cor-cell" style="background:${c.bg} !important;color:${c.fg};border-left:5px solid ${c.bar}"><strong>${escapeDaily(nomeQuadro(m.np))}</strong><br><small>N.P. ${escapeDaily(m.np)} — ${escapeDaily(m.situacao || '')}</small>${seletor}</td><td class="daily-date">${m.dataPrevista ? escapeDaily(formatDate(m.dataPrevista)) : '-'}</td><td class="daily-observation">${escapeDaily(m.observacoes || 'Sem observações cadastradas')}</td></tr>`;
-            }).join('')}</tbody></table>`;
+                const data = m.dataPrevista ? escapeDaily(formatDate(m.dataPrevista)) : '-';
+                return `<tr><td class="cor-cell" style="background:${c.bg} !important;color:${c.fg};border-left:5px solid ${c.bar}"><strong>${escapeDaily(nomeQuadro(m.np))}</strong><br><small>N.P. ${escapeDaily(m.np)} — ${escapeDaily(m.situacao || '')} · ${dias} ${dias===1?'dia':'dias'}</small>${seletor}</td><td class="daily-date"${atrasada?' style="color:#b42318"':''}>${data}${atrasada?'<br><small>ATRASADA</small>':''}</td><td class="daily-observation">${escapeDaily(m.observacoes || 'Sem observações cadastradas')}</td></tr>`;
+            }).join('');
+
+            content.innerHTML = legenda + `<table class="daily-table daily-maintenance-table"><thead><tr><th>EQUIPAMENTO / N.P.</th><th>DATA PREVISTA</th><th>OBSERVAÇÕES / SERVIÇO NECESSÁRIO</th></tr></thead><tbody>${linhas}</tbody></table>`;
         }
 
         async function exportDailyImage(mode) {
@@ -1816,7 +1992,7 @@
             }
             
             // Ordenar por Dias em Manutenção: maior para menor
-            const hojeOrdenacao = new Date().toISOString().split('T')[0];
+            const hojeOrdenacao = hojeLocal();
             ativas.sort((a, b) => {
                 const diasA = daysBetween(a.dataEntrada, hojeOrdenacao);
                 const diasB = daysBetween(b.dataEntrada, hojeOrdenacao);
@@ -1831,7 +2007,7 @@
             
             empty.style.display = 'none';
             
-            const today = new Date().toISOString().split('T')[0];
+            const today = hojeLocal();
             
             tbody.innerHTML = ativas.map(machine => {
                 const diasManutencao = daysBetween(machine.dataEntrada, today);
@@ -1864,17 +2040,17 @@
                 
                 return `
                     <tr class="${rowClass}">
-                        <td class="np-cell">${machine.np}${renderNPBadge(machine.np)}</td>
+                        <td class="np-cell">${escapeHtml(machine.np)}${renderNPBadge(machine.np)}</td>
                         <td>${formatDate(machine.dataEntrada)}</td>
                         <td><strong>${diasManutencao}</strong> dias</td>
-                        <td>${machine.tecnico}</td>
-                        <td>${machine.situacao}</td>
+                        <td>${escapeHtml(machine.tecnico)}</td>
+                        <td>${escapeHtml(machine.situacao)}</td>
                         <td>${formatDate(machine.dataPrevista)}</td>
                         <td>
                             <span class="badge ${badgeClass}">${diasPrazoText}</span>
                         </td>
-                        <td>${machine.setor}</td>
-                        <td><div class="obs-preview" title="${machine.observacoes || ''}">${machine.observacoes || '-'}</div></td>
+                        <td>${escapeHtml(machine.setor)}</td>
+                        <td><div class="obs-preview" title="${escapeHtml(machine.observacoes)}">${escapeHtml(machine.observacoes) || '-'}</div></td>
                         <td>${renderDocuments(machine)}</td>
                         <td>
                             <div class="actions">
@@ -1927,13 +2103,13 @@
                 
                 return `
                     <tr>
-                        <td class="np-cell">${machine.np}${renderNPBadge(machine.np)}</td>
+                        <td class="np-cell">${escapeHtml(machine.np)}${renderNPBadge(machine.np)}</td>
                         <td>${formatDate(machine.dataEntrada)}</td>
                         <td>${formatDate(machine.dataFim)}</td>
                         <td><strong>${tempoTotal}</strong> dias</td>
-                        <td>${machine.tecnico}</td>
-                        <td>${machine.setor}</td>
-                        <td><div class="obs-preview" title="${machine.observacoes || ''}">${machine.observacoes || '-'}</div></td>
+                        <td>${escapeHtml(machine.tecnico)}</td>
+                        <td>${escapeHtml(machine.setor)}</td>
+                        <td><div class="obs-preview" title="${escapeHtml(machine.observacoes)}">${escapeHtml(machine.observacoes) || '-'}</div></td>
                         <td>${renderDocuments(machine)}</td>
                         <td>
                             <div class="actions">
@@ -2185,7 +2361,7 @@
             const machine = machines.find(m => m.id === id);
             if (!machine) return;
             
-            const today = new Date().toISOString().split('T')[0];
+            const today = hojeLocal();
             const dataSaida = prompt('Data de Saída (AAAA-MM-DD):', today);
             
             if (dataSaida) {
@@ -2207,7 +2383,7 @@
         }
 
         // ===== Programação dos Técnicos =====
-        function programToday() { return new Date().toISOString().split('T')[0]; }
+        function programToday() { return hojeLocal(); }
         function setProgramDateToday() {
             const el=document.getElementById('program-date'); if(el && !el.value) el.value=programToday();
         }
@@ -2304,7 +2480,7 @@
             if(!alvo) return null;
             const m=machines.find(x=>x && x.status==='ativa' && String(x.np||'').trim().toLowerCase()===alvo);
             if(!m || !m.dataEntrada) return null;
-            const hoje=new Date().toISOString().split('T')[0];
+            const hoje=hojeLocal();
             return Math.max(0, daysBetween(m.dataEntrada, hoje));
         }
         function getClienteObraProgramacao(p){
@@ -2378,9 +2554,25 @@
             const old=document.title; document.title='Programação dos Técnicos - '+formatDate(date); document.body.classList.add('print-programacao'); window.print(); setTimeout(()=>{document.body.classList.remove('print-programacao');document.title=old;},500);
         }
 
+        // Clique nos cartões do topo = filtra a lista
+        function irParaFiltro(f) {
+            const tabs = document.querySelectorAll('.tab');
+            if (f === 'historico') { tabs[1].click(); window.scrollTo({top:0,behavior:'smooth'}); return; }
+            tabs[0].click();
+            currentFilter = f;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+            render();
+        }
+
+        // Esc fecha qualquer janela aberta
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { closeModal(); closeProgramacaoModal(); }
+        });
+
         // Tabs
         function switchTab(tab) {
             currentTab = tab;
+            document.body.dataset.tab = tab;
             
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.tab').classList.add('active');
@@ -2478,7 +2670,7 @@
             csv += 'MANUTENÇÕES ATIVAS\n';
             csv += 'N.P.;Data Entrada;Dias em Manutenção;Técnico;Situação;Data Prevista;Dias p/ Prazo;Setor;Observações\n';
             
-            const today = new Date().toISOString().split('T')[0];
+            const today = hojeLocal();
             
             ativas.forEach(m => {
                 const diasManutencao = daysBetween(m.dataEntrada, today);
@@ -2498,7 +2690,7 @@
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `manutencao_maquinas_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = `manutencao_maquinas_${hojeLocal()}.csv`;
             link.click();
         }
 
@@ -2508,7 +2700,7 @@
             const blob = new Blob([dataStr], { type: 'application/json' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `backup_manutencao_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `backup_manutencao_${hojeLocal()}.json`;
             link.click();
         }
 
@@ -2585,6 +2777,35 @@
             const tb = document.getElementById(id); if (!tb) return;
             new MutationObserver(() => labelCells(tb)).observe(tb, { childList: true });
             labelCells(tb);
+        });
+    })();
+    </script>
+
+    <script>
+    // Avisos discretos no canto da tela (substituem as janelinhas alert)
+    (function () {
+        function host() {
+            let h = document.getElementById('toast-host');
+            if (!h) { h = document.createElement('div'); h.id = 'toast-host'; document.body.appendChild(h); }
+            return h;
+        }
+        const reErro = /erro|não foi|nao foi|não encontr|falta permiss|ultrapassa|selecione somente/i;
+        window.showToast = function (msg) {
+            const texto = String(msg == null ? '' : msg);
+            const erro = reErro.test(texto);
+            const t = document.createElement('div');
+            t.className = 'toast' + (erro ? ' erro' : '');
+            t.textContent = texto;
+            host().appendChild(t);
+            setTimeout(() => { t.style.transition = 'opacity .3s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 320); }, erro ? 7000 : 3500);
+        };
+        window.alert = window.showToast;
+
+        // Tecla "/" leva direto para a busca
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== '/' || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+            const i = document.getElementById('searchInput');
+            if (i && i.offsetParent) { e.preventDefault(); i.focus(); }
         });
     })();
     </script>
