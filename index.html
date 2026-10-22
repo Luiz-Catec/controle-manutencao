@@ -1180,7 +1180,39 @@
         .stat-value { font-size:34px; }
         body[data-tab="estoque"] .stats-grid,
         body[data-tab="quadro"] .stats-grid,
-        body[data-tab="programacao"] .stats-grid { display:none; }
+        body[data-tab="programacao"] .stats-grid,
+        body[data-tab="previsao"] .stats-grid { display:none; }
+
+
+        /* ===== Previsão de Saída (comercial edita) ===== */
+        .prev-wrap { padding:24px; background:transparent; }
+        .prev-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; background:var(--navy); color:#fff; padding:18px 20px; border-radius:12px; margin-bottom:16px; }
+        .prev-head h2 { margin:0; font-size:21px; font-weight:700; color:#fff; }
+        .prev-head p { margin:4px 0 0; font-size:12px; color:rgba(255,255,255,.86); }
+        .prev-head .btn-primary { background:var(--yellow); color:var(--navy); border:1px solid var(--yellow); font-weight:700; }
+        .prev-tools { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+        .prev-tools input, .prev-tools select { padding:10px 12px; border:1px solid #d8dce8; border-radius:8px; background:#fff; font:inherit; min-height:40px; }
+        .prev-tools input[type=search] { flex:1; min-width:220px; }
+        .prev-summary { display:grid; grid-template-columns:repeat(4,minmax(140px,1fr)); gap:10px; margin-bottom:16px; }
+        @media(max-width:800px){ .prev-summary{grid-template-columns:repeat(2,minmax(130px,1fr));} }
+        .prev-table-box { background:#fff; border:1px solid var(--line); border-radius:10px; overflow-x:auto; box-shadow:var(--shadow); }
+        .prev-table { width:100%; border-collapse:collapse; min-width:1250px; }
+        .prev-table th { background:var(--light); color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); }
+        .prev-table td { padding:12px 14px; border-bottom:1px solid #edf0f5; font-size:13px; vertical-align:middle; }
+        .prev-table tr:hover td { background:#f8faff; }
+        .prev-badge { display:inline-block; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap; }
+        .prev-b-prevista { background:#fff4cc; color:#8a6500; }
+        .prev-b-confirmada { background:#dcf5e5; color:#1d7a43; }
+        .prev-b-reservada { background:#e4eeff; color:#1b4fb0; }
+        .prev-b-saida-informada { background:#e6f7f4; color:#0b6b5c; }
+        .prev-click { cursor:pointer; text-decoration:underline dotted; }
+        .prev-click:hover { filter:brightness(.95); }
+        .prev-b-saiu { background:#e9ecf2; color:#4b5163; }
+        .prev-b-cancelada { background:#fde3e3; color:#b42318; }
+        .prev-late { color:#b42318; font-weight:700; }
+        .prev-soon { color:#8a6500; font-weight:700; }
+        .prev-muted { color:#98a2b3; font-weight:500; }
+        .prev-empty { text-align:center; padding:48px 16px; color:var(--muted); }
 
         /* Abas (tablet/celular: barra horizontal) */
         .tabs { border-radius:12px; box-shadow:var(--shadow); }
@@ -1401,6 +1433,7 @@
             <button class="tab" onclick="switchTab('estoque')"><span>📦 Estoque Total</span></button>
             <button class="tab" onclick="switchTab('quadro')"><span>🧾 Quadro Diário</span></button>
             <button class="tab" onclick="switchTab('programacao')"><span>📅 Programação dos Técnicos</span></button>
+            <button class="tab" onclick="switchTab('previsao')"><span>🚚 Previsão de Saída</span></button>
         </div>
 
         <section id="tab-quadro" class="table-container" style="display:none;">
@@ -1451,6 +1484,27 @@
             <div class="program-stat"><div class="lbl">Reprogramados</div><div class="val" id="prog-stat-reprogramado">0</div></div>
           </div>
           <div id="programacao-list" class="program-list"></div>
+        </section>
+
+        <section id="tab-previsao" class="table-container prev-wrap" style="display:none;">
+          <div class="prev-head">
+            <div><h2>🚚 Previsão de Saída de Máquinas</h2><p>Comercial e manutenção alinhados: cadastre e atualize quando cada máquina deve sair.</p></div>
+            <button class="btn btn-primary" onclick="openPrevisaoModal()">➕ Nova previsão</button>
+          </div>
+          <div class="prev-summary">
+            <div class="program-stat"><div class="lbl">Previsões ativas</div><div class="val" id="prev-stat-total">0</div></div>
+            <div class="program-stat"><div class="lbl">Atrasadas</div><div class="val" id="prev-stat-atrasadas">0</div></div>
+            <div class="program-stat"><div class="lbl">Próximos 7 dias</div><div class="val" id="prev-stat-semana">0</div></div>
+            <div class="program-stat"><div class="lbl">Confirmadas</div><div class="val" id="prev-stat-confirmadas">0</div></div>
+          </div>
+          <div class="prev-tools">
+            <input id="prev-busca" type="search" placeholder="Buscar por N.P., cliente, responsável..." oninput="renderPrevisoes()">
+            <select id="prev-filtro-status" onchange="renderPrevisoes()">
+              <option value="ativas">Somente ativas</option><option value="todas">Todas</option>
+              <option>Prevista</option><option>Confirmada</option><option>Saída informada</option><option>Reservada</option><option>Saiu</option><option>Cancelada</option>
+            </select>
+          </div>
+          <div class="prev-table-box"><table class="prev-table"><thead><tr><th>N.P.</th><th>Equipamento</th><th>Cliente</th><th>Previsão de saída</th><th>Prazo</th><th>Situação na manutenção</th><th>Status</th><th>Responsável</th><th>Observações</th><th style="text-align:center">Ações</th></tr></thead><tbody id="prev-tbody"></tbody></table></div>
         </section>
 
         <section id="tab-estoque" class="table-container stk-wrap" style="display:none;">
@@ -1556,6 +1610,71 @@
                 <button class="btn btn-danger btn-small" onclick="clearAllData()">🗑️ Limpar Todos os Dados</button>
             </div>
         </div>
+    </div>
+
+    <!-- Modal Saída da máquina + e-mail -->
+    <div id="saida-modal" class="modal">
+      <div class="modal-content" style="max-width:900px">
+        <div class="modal-header"><h2>📦 Informações da saída e e-mail</h2><button class="close-btn" onclick="closeSaidaModal()">&times;</button></div>
+        <form id="saida-form" onsubmit="return false">
+          <input type="hidden" id="saida-id">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0 14px">
+            <div class="form-group"><label for="saida-data">Data Saída *</label><input id="saida-data" type="date" required oninput="atualizarEmailSaida()"></div>
+            <div class="form-group"><label for="saida-contrato">Contrato</label><input id="saida-contrato" oninput="atualizarEmailSaida()" placeholder="Ex.: 202500109"></div>
+            <div class="form-group"><label for="saida-proposta">Proposta</label><input id="saida-proposta" oninput="atualizarEmailSaida()" placeholder="Ex.: 103962"></div>
+            <div class="form-group"><label for="saida-periodo">Período</label><input id="saida-periodo" oninput="atualizarEmailSaida()" placeholder="Ex.: 30 DIAS (MENSAL)"></div>
+          </div>
+          <div class="form-group"><label for="saida-equip">Equipamento</label><input id="saida-equip" oninput="atualizarEmailSaida()"></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0 14px">
+            <div class="form-group"><label for="saida-cliente">Cliente</label><input id="saida-cliente" oninput="atualizarEmailSaida()"></div>
+            <div class="form-group"><label for="saida-cnpj">CNPJ</label><input id="saida-cnpj" oninput="atualizarEmailSaida()"></div>
+            <div class="form-group"><label for="saida-obra">Nome da Obra</label><input id="saida-obra" oninput="atualizarEmailSaida()"></div>
+            <div class="form-group"><label for="saida-endereco">Endereço da Obra</label><input id="saida-endereco" oninput="atualizarEmailSaida()"></div>
+            <div class="form-group"><label for="saida-contato">Contato Cliente</label><input id="saida-contato" oninput="atualizarEmailSaida()" placeholder="Nome - telefone"></div>
+            <div class="form-group"><label for="saida-tel">Tel./E-mail Cliente</label><input id="saida-tel" oninput="atualizarEmailSaida()"></div>
+            <div class="form-group"><label for="saida-frete">Frete</label><select id="saida-frete" onchange="atualizarEmailSaida()"><option value="">Selecione...</option><option value="CIF">CIF - Orguel</option><option value="FOB">FOB - Cliente</option></select></div>
+            <div class="form-group"><label for="saida-transp">Transportadora</label><input id="saida-transp" oninput="atualizarEmailSaida()"></div>
+            <div class="form-group"><label for="saida-valor">Valor do Trecho</label><input id="saida-valor" oninput="atualizarEmailSaida()" placeholder="Ex.: R$ 1.800,00 POR TRECHO"></div>
+            <div class="form-group"><label for="saida-horario">Horário de Recebimento</label><input id="saida-horario" oninput="atualizarEmailSaida()" placeholder="Ex.: 08:00 às 16:00"></div>
+            <div class="form-group"><label for="saida-integ">Integração</label><select id="saida-integ" onchange="atualizarEmailSaida()"><option value="">Selecione...</option><option>SIM</option><option>NÃO</option></select></div>
+            <div class="form-group"><label for="saida-trein">Treinamento</label><select id="saida-trein" onchange="atualizarEmailSaida()"><option value="">Selecione...</option><option>SIM</option><option>NÃO</option></select></div>
+            <div class="form-group"><label for="saida-art">Emissão de ART</label><select id="saida-art" onchange="atualizarEmailSaida()"><option value="">Selecione...</option><option>SIM</option><option>NÃO</option></select></div>
+          </div>
+          <div class="form-group"><label for="saida-obs">Observações</label><textarea id="saida-obs" oninput="atualizarEmailSaida()" placeholder="Ex.: ENVIAR TODAS AS DOCUMENTAÇÕES DO EQUIPAMENTO E ART PARA O CLIENTE."></textarea></div>
+          <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+          <div class="form-group"><label>Enviar para (marque quem vai receber)</label><div id="saida-destinos" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:8px 16px;background:var(--light);border:1px solid var(--line);border-radius:10px;padding:12px 14px"></div></div>
+          <div class="form-group"><label for="saida-para">Outros e-mails <span style="font-weight:500;color:var(--muted)">(opcional — separe vários com vírgula)</span></label><input id="saida-para" placeholder="outro.email@empresa.com.br"></div>
+          <div class="form-group"><label for="saida-assunto">Assunto</label><input id="saida-assunto"></div>
+          <div class="form-group"><label>Prévia do e-mail</label><div id="saida-preview" style="border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff;overflow-x:auto"></div></div>
+          <div class="form-actions" style="flex-wrap:wrap">
+            <button type="button" class="btn btn-secondary" onclick="closeSaidaModal()">Fechar</button>
+            <button type="button" class="btn btn-secondary" onclick="salvarSaida('salvar')">💾 Só salvar</button>
+            <button type="button" class="btn btn-secondary" onclick="salvarSaida('copiar')">📋 Copiar tabela</button>
+            <button type="button" class="btn btn-secondary" onclick="salvarSaida('eml')">⬇️ Baixar e-mail (.eml)</button>
+            <button type="button" class="btn btn-primary" onclick="salvarSaida('abrir')">✉️ Copiar tabela e abrir e-mail</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Previsão de Saída -->
+    <div id="prev-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header"><h2 id="prev-modal-title">Nova previsão de saída</h2><button class="close-btn" onclick="closePrevisaoModal()">&times;</button></div>
+        <form id="prev-form" onsubmit="savePrevisao(event)">
+          <input type="hidden" id="prev-edit-id">
+          <div class="form-group"><label for="prev-np">N.P. <span style="font-weight:500;color:var(--muted)">(opcional — deixe vazio se ainda não tiver)</span></label><input id="prev-np" list="prev-np-list" placeholder="Ex.: 024.0012.105"><datalist id="prev-np-list"></datalist></div>
+          <div class="form-group"><label for="prev-tipo">Tipo de máquina <span style="font-weight:500;color:var(--muted)">(obrigatório se não tiver N.P.)</span></label><select id="prev-tipo"><option value="">Selecione...</option><option>Articulada</option><option>Telescópica</option><option>Tesoura</option></select></div>
+          <div class="form-group"><label for="prev-metros">Metros (altura de trabalho)</label><input id="prev-metros" type="number" min="0" step="0.5" placeholder="Ex.: 12"></div>
+          <div class="form-group"><label for="prev-motor">Motorização</label><select id="prev-motor"><option value="">Selecione...</option><option>Diesel</option><option>Elétrica</option></select></div>
+          <div class="form-group"><label for="prev-cliente">Cliente / Obra</label><input id="prev-cliente" placeholder="Para quem vai a máquina"></div>
+          <div class="form-group"><label for="prev-data">Previsão de saída *</label><input id="prev-data" type="date" required></div>
+          <div class="form-group"><label for="prev-status">Status</label><select id="prev-status"><option>Prevista</option><option>Confirmada</option><option>Saída informada</option><option>Reservada</option><option>Saiu</option><option>Cancelada</option></select></div>
+          <div class="form-group"><label for="prev-responsavel">Responsável (comercial)</label><input id="prev-responsavel" placeholder="Nome de quem está cuidando"></div>
+          <div class="form-group"><label for="prev-obs">Observações</label><textarea id="prev-obs" placeholder="Contrato, transporte, condição de entrega etc."></textarea></div>
+          <div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closePrevisaoModal()">Cancelar</button><button type="submit" class="btn btn-primary">Salvar previsão</button></div>
+        </form>
+      </div>
     </div>
 
     <!-- Modal Programação -->
@@ -1714,11 +1833,12 @@
             document.body.classList.toggle('viewer', !isAdmin);
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('session-bar').style.display = 'flex';
-            document.getElementById('session-info').textContent = (isAdmin ? 'Administrador' : 'Somente visualização') + ' • ' + user.email;
+            document.getElementById('session-info').textContent = (isAdmin ? 'Administrador' : 'Visualização + edita Previsão de Saída') + ' • ' + user.email;
             document.querySelector('.container').style.display = 'block';
             await loadData();
             await loadStock();
             await loadProgramacoes();
+            await loadPrevisoes();
             setTodayAsDefault();
             setProgramDateToday();
             render();
@@ -1728,6 +1848,10 @@
             supabaseClient.channel('programacao-live').on('postgres_changes', { event: '*', schema: 'public', table: 'programacao_tecnicos' }, async () => {
                 await loadProgramacoes();
                 renderProgramacao();
+            }).subscribe();
+            supabaseClient.channel('previsao-live').on('postgres_changes', { event: '*', schema: 'public', table: 'previsao_saida' }, async () => {
+                await loadPrevisoes();
+                renderPrevisoes();
             }).subscribe();
         }
 
@@ -2592,6 +2716,258 @@
             const old=document.title; document.title='Programação dos Técnicos - '+formatDate(date); document.body.classList.add('print-programacao'); window.print(); setTimeout(()=>{document.body.classList.remove('print-programacao');document.title=old;},500);
         }
 
+
+        // ===== Previsão de Saída (qualquer usuário logado edita; RLS no Supabase controla) =====
+        let previsoes = [];
+        function podeEditarPrevisao(){ return !!currentUser; }
+        async function loadPrevisoes(){
+            const {data,error}=await supabaseClient.from('previsao_saida').select('*').order('previsao_saida',{ascending:true});
+            if(error){ console.warn('Previsão de saída ainda não configurada no Supabase:',error.message); previsoes=[]; return; }
+            previsoes=(data||[]).map(r=>({id:r.id,sd:r.saida_data||'',st:r.transportadora||'',sl:r.local_entrega||'',sc:r.contato_cliente||'',sdoc:r.documento||'',sp:r.email_para||'',so:r.saida_obs||'',sprop:r.proposta||'',sper:r.periodo||'',scnpj:r.cnpj||'',sobra:r.obra||'',stel:r.tel_email_cliente||'',sfrete:r.frete||'',sval:r.valor_trecho||'',shora:r.horario_recebimento||'',sint:r.integracao||'',strein:r.treinamento||'',sart:r.art||'',seq:r.saida_equipamento||'',np:r.np||'',tipo:r.tipo||'',metros:(r.metros===null||r.metros===undefined)?'':r.metros,motor:r.motorizacao||'',cliente:r.cliente||'',data:r.previsao_saida||'',status:r.status||'Prevista',responsavel:r.responsavel||'',obs:r.observacoes||'',atualizadoPor:r.updated_by||'',atualizadoEm:r.updated_at||''}));
+        }
+        function openPrevisaoModal(id){
+            const m=document.getElementById('prev-modal'); if(!m) return;
+            const r=id?previsoes.find(x=>String(x.id)===String(id)):null;
+            document.getElementById('prev-form').reset();
+            document.getElementById('prev-modal-title').textContent=r?'Editar previsão de saída':'Nova previsão de saída';
+            document.getElementById('prev-edit-id').value=r?r.id:'';
+            document.getElementById('prev-np').value=r?.np||'';
+            document.getElementById('prev-tipo').value=r?.tipo||'';
+            document.getElementById('prev-metros').value=r?.metros??'';
+            document.getElementById('prev-motor').value=r?.motor||'';
+            document.getElementById('prev-cliente').value=r?.cliente||'';
+            document.getElementById('prev-data').value=r?.data||'';
+            document.getElementById('prev-status').value=r?.status||'Prevista';
+            document.getElementById('prev-responsavel').value=r?.responsavel||'';
+            document.getElementById('prev-obs').value=r?.obs||'';
+            const vals=new Map();
+            const nrm=v=>String(v||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+            // N.P. com "NOTA FISCAL DE REMESSA GERADA" no estoque já saiu: não entra nas sugestões
+            const remetidos=new Set(stockRows.filter(x=>nrm(x.status).includes('NOTA FISCAL DE REMESSA')).map(x=>nrm(x.lote)));
+            machines.forEach(x=>{ if(x.np && !remetidos.has(nrm(x.np))) vals.set(String(x.np),descreverNP(x.np)||''); });
+            stockRows.forEach(x=>{ if(x.lote && !remetidos.has(nrm(x.lote)) && !vals.has(String(x.lote))) vals.set(String(x.lote),String(x.descricao||x.produto||'')); });
+            document.getElementById('prev-np-list').innerHTML=[...vals].map(([v,l])=>`<option value="${escapeHtml(v)}">${escapeHtml(l)}</option>`).join('');
+            m.classList.add('active');
+        }
+        function closePrevisaoModal(){ const m=document.getElementById('prev-modal'); if(m) m.classList.remove('active'); }
+        async function savePrevisao(event){
+            event.preventDefault(); if(!podeEditarPrevisao()) return alert('Faça login para editar.');
+            const id=document.getElementById('prev-edit-id').value;
+            const metrosVal=document.getElementById('prev-metros').value;
+            const row={np:document.getElementById('prev-np').value.trim()||null,tipo:document.getElementById('prev-tipo').value||null,metros:metrosVal===''?null:Number(metrosVal),motorizacao:document.getElementById('prev-motor').value||null,cliente:document.getElementById('prev-cliente').value.trim()||null,previsao_saida:document.getElementById('prev-data').value,status:document.getElementById('prev-status').value,responsavel:document.getElementById('prev-responsavel').value.trim()||null,observacoes:document.getElementById('prev-obs').value.trim()||null,updated_by:currentUser.email,updated_at:new Date().toISOString()};
+            if(!row.previsao_saida) return alert('Informe a data de previsão de saída.');
+            if(!row.np&&!row.tipo) return alert('Sem N.P., escolha ao menos o tipo da máquina (articulada, telescópica ou tesoura).');
+            const q=id?supabaseClient.from('previsao_saida').update(row).eq('id',id):supabaseClient.from('previsao_saida').insert(row);
+            const {error}=await q;
+            if(error) return alert('Não foi possível salvar a previsão: '+error.message+'\nSe a tabela ainda não foi criada, rode o SQL do arquivo previsao_saida.sql no Supabase.');
+            await loadPrevisoes(); renderPrevisoes(); closePrevisaoModal();
+        }
+        async function deletePrevisao(id){
+            if(!podeEditarPrevisao()) return alert('Faça login para editar.');
+            if(!confirm('Excluir esta previsão de saída?')) return;
+            const {error}=await supabaseClient.from('previsao_saida').delete().eq('id',id);
+            if(error) return alert('Erro ao excluir: '+error.message);
+            await loadPrevisoes(); renderPrevisoes();
+        }
+        async function updatePrevisaoStatus(id,status){
+            if(!podeEditarPrevisao()) return;
+            const {error}=await supabaseClient.from('previsao_saida').update({status,updated_by:currentUser.email,updated_at:new Date().toISOString()}).eq('id',id);
+            if(error) return alert('Erro ao atualizar status: '+error.message);
+            await loadPrevisoes(); renderPrevisoes();
+        }
+
+        // ----- Informar saída + gerar e-mail (modelo em tabela) -----
+        function equipPrevisao(p){ return [p.tipo,(p.metros!==''&&p.metros!==null&&p.metros!==undefined?p.metros+' m':''),p.motor].filter(Boolean).join(' • '); }
+        function equipPadraoEmail(p){
+            const m=(p.metros!==''&&p.metros!==null&&p.metros!==undefined)?' '+String(p.metros).replace('.',',')+' METROS':'';
+            const sa=v=>String(v||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            return '01 x PLATAFORMA ELEVATORIA'+m+(p.tipo?' '+sa(p.tipo):'')+(p.motor?' '+sa(p.motor):'');
+        }
+        // ----- Destinatários padrão do e-mail de saída (o comercial marca quem recebe e pode incluir outros) -----
+        const EMAILS_PADRAO=[
+            'luiz.araujo@orguel.com.br','alfredo.silva@orguel.com.br','marcia.ronchi@orguel.com.br',
+            'j.neves@orguel.com.br','karolayne.nogueira@orguel.com.br','ana.oliveira@orguel.com.br',
+            'oficina.mixx@hotmail.com','paiolatransportes@paiolatransportes.com'
+        ];
+        function carregarDestinosSaida(salvos){
+            const lista=String(salvos||'').split(/[,;\s]+/).map(x=>x.trim()).filter(Boolean);
+            const marcados=new Set(lista.map(x=>x.toLowerCase()));
+            const padraoMin=EMAILS_PADRAO.map(x=>x.toLowerCase());
+            document.getElementById('saida-destinos').innerHTML=EMAILS_PADRAO.map((em,i)=>`<label style="display:flex;align-items:center;gap:8px;font-weight:500;font-size:13px;cursor:pointer;margin:0"><input type="checkbox" class="saida-dest" value="${escapeHtml(em)}" ${marcados.has(em.toLowerCase())?'checked':''} style="width:auto;min-height:0;padding:0;margin:0;border:0;flex:none"> ${escapeHtml(em)}</label>`).join('');
+            document.getElementById('saida-para').value=lista.filter(x=>!padraoMin.includes(x.toLowerCase())).join(', ');
+        }
+        function destinatariosSaida(){
+            const marcados=[...document.querySelectorAll('#saida-destinos .saida-dest:checked')].map(c=>c.value);
+            const extras=String(document.getElementById('saida-para').value||'').split(/[,;\s]+/).map(x=>x.trim()).filter(Boolean);
+            const vistos=new Set(); const saida=[];
+            [...marcados,...extras].forEach(e=>{ const k=e.toLowerCase(); if(!vistos.has(k)){ vistos.add(k); saida.push(e); } });
+            return saida.join(',');
+        }
+        function openSaidaModal(id){
+            const p=previsoes.find(x=>String(x.id)===String(id)); if(!p) return;
+            const set=(i,v)=>{ document.getElementById(i).value=v||''; };
+            document.getElementById('saida-form').reset();
+            document.getElementById('saida-id').value=p.id;
+            set('saida-data',p.sd||p.data); set('saida-contrato',p.sdoc); set('saida-proposta',p.sprop); set('saida-periodo',p.sper);
+            set('saida-equip',p.seq||equipPadraoEmail(p)); set('saida-cliente',p.cliente); set('saida-cnpj',p.scnpj); set('saida-obra',p.sobra);
+            set('saida-endereco',p.sl); set('saida-contato',p.sc); set('saida-tel',p.stel); set('saida-frete',p.sfrete); set('saida-transp',p.st);
+            set('saida-valor',p.sval); set('saida-horario',p.shora); set('saida-integ',p.sint); set('saida-trein',p.strein); set('saida-art',p.sart); set('saida-obs',p.so);
+            let paraPadrao=''; try{ paraPadrao=localStorage.getItem('previsaoEmailPara')||''; }catch(e){}
+            carregarDestinosSaida(p.sp||paraPadrao);
+            atualizarEmailSaida();
+            document.getElementById('saida-modal').classList.add('active');
+        }
+        function closeSaidaModal(){ const m=document.getElementById('saida-modal'); if(m) m.classList.remove('active'); }
+        function montarEmailSaida(){
+            const g=id=>document.getElementById(id).value.trim();
+            const X='<b style="color:#d00000">X</b>';
+            const marca=(v,alvo,html)=>v===alvo?(html?X:'X'):(html?'&nbsp;':' ');
+            const simnao=(v,html)=>`SIM ( ${marca(v,'SIM',html)} )  OU  NÃO ( ${marca(v,'NÃO',html)} )`;
+            const frete=(v,html)=>`CIF - Orguel ( ${marca(v,'CIF',html)} )          FOB - Cliente ( ${marca(v,'FOB',html)} )`;
+            const data=g('saida-data'), esc=escapeHtml;
+            const contrato=g('saida-contrato'), prop=g('saida-proposta');
+            const linhas=[
+                {k:'Data Saída',t:data?formatDate(data):'',h:esc(data?formatDate(data):'')},
+                {k:'Contrato',t:contrato+(prop?'        PROPOSTA: '+prop:''),h:esc(contrato)+(prop?'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>PROPOSTA:</b> '+esc(prop):'')},
+                {k:'Equipamento',t:g('saida-equip'),h:'<b><u>'+esc(g('saida-equip'))+'</u></b>'},
+                {k:'Período',t:g('saida-periodo'),h:esc(g('saida-periodo'))},
+                {k:'Cliente',t:g('saida-cliente'),h:esc(g('saida-cliente'))},
+                {k:'CNPJ',t:g('saida-cnpj'),h:esc(g('saida-cnpj'))},
+                {k:'Nome da Obra',t:g('saida-obra'),h:esc(g('saida-obra'))},
+                {k:'Endereço da Obra',t:g('saida-endereco'),h:esc(g('saida-endereco'))},
+                {k:'Contato Cliente',t:g('saida-contato'),h:'<b>'+esc(g('saida-contato'))+'</b>'},
+                {k:'Tel./E-mail Cliente',t:g('saida-tel'),h:esc(g('saida-tel'))},
+                {k:'Frete',t:frete(g('saida-frete'),false),h:frete(g('saida-frete'),true).replace(/ {2,}/g,m=>'&nbsp;'.repeat(m.length))},
+                {k:'Transportadora',t:g('saida-transp'),h:esc(g('saida-transp'))},
+                {k:'Valor do Trecho',t:g('saida-valor'),h:esc(g('saida-valor'))},
+                {k:'Horário de Recebimento',t:g('saida-horario'),h:esc(g('saida-horario'))},
+                {k:'Integração',t:simnao(g('saida-integ'),false),h:simnao(g('saida-integ'),true)},
+                {k:'Treinamento',t:simnao(g('saida-trein'),false),h:simnao(g('saida-trein'),true)},
+                {k:'Emissão de ART',t:simnao(g('saida-art'),false),h:simnao(g('saida-art'),true)},
+                {k:'Observações',t:g('saida-obs'),h:g('saida-obs')?'<span style="background:#ffff00">'+esc(g('saida-obs'))+'</span>':''}
+            ];
+            const td='border:1px solid #bfbfbf;padding:8px 10px;vertical-align:middle;font-size:14px';
+            const tabela='<table style="border-collapse:collapse;width:100%;max-width:720px;font-family:Calibri,Arial,sans-serif">'+linhas.map(l=>`<tr><td style="${td};width:190px;font-weight:bold">${esc(l.k)}:</td><td style="${td}">${l.h||'&nbsp;'}</td></tr>`).join('')+'</table>';
+            const hr=new Date().getHours(); const saud=hr<12?'Bom dia!':hr<18?'Boa tarde!':'Boa noite!';
+            const equipTxt=g('saida-equip');
+            const intro='Anexo informações referente a saída da plataforma: '+equipTxt;
+            const equipAss=equipTxt.replace(/^\d+\s*x\s*-?\s*/i,'');
+            const assunto='Saída de equipamento'+(equipAss?' – '+equipAss:'')+(g('saida-cliente')?' – '+g('saida-cliente'):'')+(data?' – '+formatDate(data):'');
+            const plano=saud+'\n\n'+intro+'\n\n'+linhas.map(l=>l.k+': '+l.t).join('\n');
+            const html='<div style="font-family:Calibri,Arial,sans-serif;font-size:14px"><p>'+esc(saud)+'</p><p>Anexo informações referente a saída da plataforma: <b><u>'+esc(equipTxt)+'</u></b></p><br>'+tabela+'</div>';
+            return {assunto,plano,html,tabela};
+        }
+        function atualizarEmailSaida(){
+            const e=montarEmailSaida();
+            document.getElementById('saida-assunto').value=e.assunto;
+            document.getElementById('saida-preview').innerHTML=e.tabela;
+        }
+        async function copiarHtmlSaida(html,plano){
+            // 1) API moderna (copia tabela formatada + texto)
+            try{
+                if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+                    await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plano],{type:'text/plain'})})]);
+                    return true;
+                }
+            }catch(err){}
+            // 2) plano B: seleciona um bloco invisível e copia (também mantém a formatação)
+            try{
+                const d=document.createElement('div'); d.innerHTML=html;
+                d.style.cssText='position:fixed;left:-99999px;top:0;background:#fff';
+                document.body.appendChild(d);
+                const r=document.createRange(); r.selectNodeContents(d);
+                const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+                const ok=document.execCommand('copy'); sel.removeAllRanges(); d.remove();
+                return ok;
+            }catch(err){ return false; }
+        }
+        function baixarEmlSaida(para,assunto,html,nome){
+            const b64=t=>btoa(unescape(encodeURIComponent(t)));
+            const quebra=t=>t.replace(/.{1,76}/g,'$&\r\n');
+            const eml=['To: '+para,'Subject: =?UTF-8?B?'+b64(assunto)+'?=','X-Unsent: 1','MIME-Version: 1.0','Content-Type: text/html; charset=UTF-8','Content-Transfer-Encoding: base64','',quebra(b64('<html><body>'+html+'</body></html>'))].join('\r\n');
+            const a=document.createElement('a');
+            a.href=URL.createObjectURL(new Blob([eml],{type:'message/rfc822'}));
+            a.download='saida-'+String(nome||'maquina').replace(/[^\w.-]+/g,'_')+'.eml';
+            document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+        }
+        async function salvarSaida(acao){
+            if(!podeEditarPrevisao()) return alert('Faça login para editar.');
+            const id=document.getElementById('saida-id').value;
+            const p=previsoes.find(x=>String(x.id)===String(id)); if(!p) return;
+            const g=i=>document.getElementById(i).value.trim();
+            if(!g('saida-data')) return alert('Informe a data da saída.');
+            const e=montarEmailSaida(); const assunto=g('saida-assunto'); const para=destinatariosSaida();
+            // copia ANTES de qualquer espera, senão o navegador pode bloquear a cópia
+            let copiado=false;
+            if(acao==='copiar'||acao==='abrir') copiado=await copiarHtmlSaida(e.html,e.plano);
+            const n=v=>v||null;
+            const row={saida_data:g('saida-data'),documento:n(g('saida-contrato')),proposta:n(g('saida-proposta')),periodo:n(g('saida-periodo')),saida_equipamento:n(g('saida-equip')),cliente:n(g('saida-cliente')),cnpj:n(g('saida-cnpj')),obra:n(g('saida-obra')),local_entrega:n(g('saida-endereco')),contato_cliente:n(g('saida-contato')),tel_email_cliente:n(g('saida-tel')),frete:n(g('saida-frete')),transportadora:n(g('saida-transp')),valor_trecho:n(g('saida-valor')),horario_recebimento:n(g('saida-horario')),integracao:n(g('saida-integ')),treinamento:n(g('saida-trein')),art:n(g('saida-art')),saida_obs:n(g('saida-obs')),email_para:n(para),updated_by:currentUser.email,updated_at:new Date().toISOString()};
+            if(p.status==='Confirmada'||p.status==='Prevista'||p.status==='Reservada') row.status='Saída informada';
+            const {error}=await supabaseClient.from('previsao_saida').update(row).eq('id',id);
+            if(error) return alert('Não foi possível salvar: '+error.message+'\nSe ainda não rodou o SQL previsao_saida_v4.sql no Supabase, rode antes.');
+            try{ if(para) localStorage.setItem('previsaoEmailPara',para); }catch(err){}
+            await loadPrevisoes(); renderPrevisoes();
+            if(acao==='copiar'){
+                alert(copiado?'Tabela copiada! Abra o e-mail, clique no corpo da mensagem e cole (Ctrl+V). Assunto: '+assunto:'Não consegui copiar a tabela automaticamente. Use o botão "Baixar e-mail (.eml)".');
+                return;
+            }
+            if(acao==='eml'){
+                baixarEmlSaida(para,assunto,e.html,p.np||p.cliente);
+                alert('Arquivo .eml baixado. Abra-o (clique duas vezes): o e-mail abre pronto, com destinatários, assunto e tabela.');
+                return;
+            }
+            if(acao==='abrir'){
+                // com a tabela copiada, o corpo vai vazio para a pessoa colar (Ctrl+V); sem cópia, vai o texto simples
+                const corpo=copiado?'':e.plano;
+                window.location.href='mailto:'+encodeURIComponent(para).replace(/%2C/g,',').replace(/%40/g,'@')+'?subject='+encodeURIComponent(assunto)+(corpo?'&body='+encodeURIComponent(corpo.replace(/\n/g,'\r\n')):'');
+                if(copiado) alert('Tabela copiada! No e-mail que abriu, clique no corpo da mensagem e cole (Ctrl+V).');
+            }
+            closeSaidaModal();
+        }
+        function renderPrevisoes(){
+            const tb=document.getElementById('prev-tbody'); if(!tb) return;
+            const hoje=hojeLocal(); const esc=v=>escapeHtml(v);
+            const norm=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            const encerrada=p=>p.status==='Saiu'||p.status==='Cancelada';
+            const ativas=previsoes.filter(p=>!encerrada(p));
+            document.getElementById('prev-stat-total').textContent=ativas.length;
+            document.getElementById('prev-stat-atrasadas').textContent=ativas.filter(p=>p.data&&p.data<hoje).length;
+            document.getElementById('prev-stat-semana').textContent=ativas.filter(p=>p.data&&daysBetween(hoje,p.data)>=0&&daysBetween(hoje,p.data)<=7).length;
+            document.getElementById('prev-stat-confirmadas').textContent=ativas.filter(p=>p.status==='Confirmada').length;
+            const filtro=document.getElementById('prev-filtro-status').value;
+            const busca=norm(document.getElementById('prev-busca').value);
+            let rows=previsoes.filter(p=>filtro==='todas'||(filtro==='ativas'?!encerrada(p):p.status===filtro));
+            if(busca) rows=rows.filter(p=>norm([p.np,p.tipo,p.metros,p.motor,p.cliente,p.responsavel,p.obs].join(' ')).includes(busca));
+            rows.sort((a,b)=>String(a.data||'9999').localeCompare(String(b.data||'9999')));
+            if(!rows.length){ tb.innerHTML='<tr><td colspan="10"><div class="prev-empty"><h3>Nenhuma previsão encontrada</h3><p>Use “Nova previsão” para cadastrar a saída de uma máquina.</p></div></td></tr>'; return; }
+            const slug=s=>norm(s).replace(/\s+/g,'-');
+            const badge=(s,idc)=>idc?`<span class="prev-badge prev-b-${slug(s)} prev-click" title="Clique para informar a saída e gerar o e-mail" onclick="openSaidaModal('${idc}')">${esc(s)}</span>`:`<span class="prev-badge prev-b-${slug(s)}">${esc(s)}</span>`;
+            const podeEditar=podeEditarPrevisao();
+            tb.innerHTML=rows.map(p=>{
+                const d=p.data?daysBetween(hoje,p.data):null;
+                let prazo='<span class="prev-muted">—</span>';
+                if(encerrada(p)) prazo='<span class="prev-muted">—</span>';
+                else if(d!==null){ prazo=d<0?`<span class="prev-late">${-d} dia${d===-1?'':'s'} de atraso</span>`:d===0?'<span class="prev-soon">Hoje</span>':d<=7?`<span class="prev-soon">em ${d} dia${d===1?'':'s'}</span>`:`em ${d} dias`; }
+                const mq=p.np?machines.find(m=>m.status==='ativa'&&String(m.np||'').trim().toLowerCase()===String(p.np).trim().toLowerCase()):null;
+                const equip=[p.tipo,(p.metros!==''?p.metros+' m':''),p.motor].filter(Boolean).join(' • ');
+                const manut=mq?`Em manutenção${mq.dataPrevista?' • conclusão '+esc(formatDate(mq.dataPrevista)):''}`:'<span class="prev-muted">Fora da manutenção</span>';
+                const conflito=mq&&mq.dataPrevista&&p.data&&mq.dataPrevista>p.data&&!encerrada(p)?' <span class="prev-late" title="A manutenção termina depois da data de saída prevista">⚠️</span>':'';
+                const id=String(p.id).replace(/'/g,"\\'");
+                return `<tr>
+                  <td>${p.np?`<strong>${esc(p.np)}</strong>`:'<span class="prev-muted">Sem N.P.</span>'}</td>
+                  <td>${equip?esc(equip):'<span class="prev-muted">—</span>'}</td>
+                  <td>${p.cliente?esc(p.cliente):'<span class="prev-muted">—</span>'}</td>
+                  <td>${p.data?esc(formatDate(p.data)):'—'}</td>
+                  <td>${prazo}</td>
+                  <td>${manut}${conflito}</td>
+                  <td>${badge(p.status,(podeEditar&&(p.status==='Confirmada'||p.status==='Saída informada'))?id:null)}</td>
+                  <td>${p.responsavel?esc(p.responsavel):'<span class="prev-muted">—</span>'}</td>
+                  <td>${p.obs?esc(p.obs):'<span class="prev-muted">—</span>'}</td>
+                  <td style="text-align:center;white-space:nowrap">${podeEditar&&(p.status==='Confirmada'||p.status==='Saída informada')?`<button class="icon-btn" onclick="openSaidaModal('${id}')" title="Informar saída / gerar e-mail">📧</button> `:''}${podeEditar?`<button class="icon-btn" onclick="openPrevisaoModal('${id}')" title="Editar">✏️</button> <button class="icon-btn" onclick="deletePrevisao('${id}')" title="Excluir">🗑️</button>`:''}</td>
+                </tr>`;
+            }).join('');
+        }
+
         // Clique nos cartões do topo = filtra a lista
         function irParaFiltro(f) {
             const tabs = document.querySelectorAll('.tab');
@@ -2604,7 +2980,7 @@
 
         // Esc fecha qualquer janela aberta
         document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') { closeModal(); closeProgramacaoModal(); }
+            if (e.key === 'Escape') { closeModal(); closeProgramacaoModal(); closePrevisaoModal(); closeSaidaModal(); }
         });
 
         // Tabs
@@ -2615,7 +2991,7 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.tab').classList.add('active');
             
-            ['ativas','historico','estoque','quadro','programacao'].forEach(id => {
+            ['ativas','historico','estoque','quadro','programacao','previsao'].forEach(id => {
                 const el=document.getElementById('tab-'+id); if(el) el.style.display=(tab===id?'block':'none');
             });
             // Os filtros de manutenção ficam ocultos na aba de estoque.
@@ -2624,6 +3000,7 @@
             if(tab==='estoque') renderStock();
             if(tab==='quadro') renderDailyBoard();
             if(tab==='programacao') renderProgramacao();
+            if(tab==='previsao') renderPrevisoes();
         }
 
 
